@@ -49,7 +49,7 @@
 | ------------------------------------------------- | ---------------------------- | ---- |
 | <strong>第一部分：前言</strong> |  |  |
 | [前言](./docs/guide/前言.md)        | 前言与读者建议   | ✅    |
-| [第一章 LangChain与LangGraph框架认知](./docs/guide/chapter1.md) |  框架介绍、环境安装、lang框架体验| ✅    |
+| [第一章 LangChain与LangGraph框架认知](./docs/guide/chapter1.md) |  框架介绍、环境安装、lang框架体验| ✅    | 
 | <strong>第二部分：LangChain组件与实战</strong> |  |  |
 | [第二章 LangChain核心组件实操](./docs/guide/chapter2.md) | 模型调用、提示词模板、输出解析 | ✅    |
 | [第三章 LangChain进阶组件实操](./docs/guide/chapter3.md) | 记忆、工具、组合实践 | ✅    |
@@ -59,6 +59,9 @@
 | [第六章 LangGraph基础：有状态工作流与核心概念实操](./docs/guide/chapter6.md) | 有状态工作流、节点、边、状态管理 | ✅    |
 | [第七章 LangGraph进阶：多智能体协作与复杂流程管控](./docs/guide/chapter7.md) | 多智能体协作、复杂流程管控 | ✅    |
 | [第八章 综合实战：构建"谁是卧底"游戏智能体](./docs/guide/chapter8.md) | 综合实战 | ✅    |
+| <strong>第四部分：Agent技能扩展</strong> |  |  |
+| [第九章 Agent Skills与lang框架开发与应用](./docs/guide/chapter9.md) | Skills 扩展 | 🚧    |
+| [第十章 轻量级Agent实战：手搓龙虾（openclaw 项目开发）](./docs/guide/chapter10.md) | 基于lang框架动手开发openclaw项目 | 🚧    |
 | [结语](./docs/guide/结语.md)        | 项目总结与展望   | ✅    |
 | <strong>相关agent项目 |  |  |
 | [狼人杀（上帝视角）](./project/werewolfGameAi/README.md) | 基于langgraph开发 | ✅    |
