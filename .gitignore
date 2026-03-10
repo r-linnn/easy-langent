@@ -1,5 +1,6 @@
 .env
 test.py
+.vscode/*
 
 docs/.vitepress/dist
-docs/.vitepress/cache
+docs/.vitepress/cache 
