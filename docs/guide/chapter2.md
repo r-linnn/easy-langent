@@ -30,6 +30,7 @@ conda activate langent-env
 
 ```
 API_KEY=XXXXXXXXX
+BASE_URL=https://api.example.com  # API地址，使用你的模型对应的地址（如DeepSeek: https://api.deepseek.com）
 ```
 
 做好这些准备，我们就出发吧！
@@ -72,7 +73,7 @@ import os
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
-BASE_URL = "https://api.deepseek.com"
+BASE_URL = os.getenv("BASE_URL")  # 从环境变量读取，未配置时默认为None（使用OpenAI官方地址）
 
 if not API_KEY:
     raise ValueError("未检测到 API_KEY，请检查 .env 文件是否配置正确")
@@ -162,7 +163,7 @@ pipe = pipeline(
     model=model,
     tokenizer=tokenizer,
     max_new_tokens=200,
-    temperature=0.6
+    temperature=0.3
 )
 
 # 3. 初始化LangChain的LLM接口（统一接口）
@@ -205,7 +206,7 @@ import os
 
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
-BASE_URL = "https://api.deepseek.com"
+BASE_URL = os.getenv("BASE_URL")  # 从环境变量读取，未配置时默认为None（使用OpenAI官方地址）
 
 if not API_KEY:
     raise ValueError("未检测到 API_KEY，请检查 .env 文件是否配置正确")
@@ -283,7 +284,7 @@ import os
 
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
-BASE_URL = "https://api.deepseek.com"
+BASE_URL = os.getenv("BASE_URL")  # 从环境变量读取，未配置时默认为None（使用OpenAI官方地址）
 
 if not API_KEY:
     raise ValueError("未检测到 API_KEY，请检查 .env 文件是否配置正确")
@@ -402,7 +403,7 @@ from typing import Dict, List
 # 1. 环境初始化（工程化标准操作：环境变量管理密钥）
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
-BASE_URL = "https://api.deepseek.com"
+BASE_URL = os.getenv("BASE_URL")  # 从环境变量读取，未配置时默认为None（使用OpenAI官方地址）
 
 if not API_KEY:
     raise ValueError("未检测到 API_KEY，请检查 .env 文件是否配置正确")
@@ -562,7 +563,7 @@ import os
 # 1. 环境初始化
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
-BASE_URL = "https://api.deepseek.com"
+BASE_URL = os.getenv("BASE_URL")  # 从环境变量读取，未配置时默认为None（使用OpenAI官方地址）
 
 # 2. 初始化模型（无需支持原生结构化输出）
 llm = ChatOpenAI(
@@ -599,7 +600,7 @@ import os
 # 1. 环境与模型初始化（省略，同方案1）
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
-BASE_URL = "https://api.deepseek.com"
+BASE_URL = os.getenv("BASE_URL")  # 从环境变量读取，未配置时默认为None（使用OpenAI官方地址）
 llm = ChatOpenAI(
     api_key=API_KEY,
     base_url=BASE_URL,
@@ -651,7 +652,7 @@ import os
 # 1. 环境与模型初始化
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
-BASE_URL = "https://api.deepseek.com"
+BASE_URL = os.getenv("BASE_URL")  # 从环境变量读取，未配置时默认为None（使用OpenAI官方地址）
 
 llm = ChatOpenAI(
     api_key=API_KEY,
@@ -733,7 +734,7 @@ import os
 # 环境初始化
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
-BASE_URL = "https://api.deepseek.com"
+BASE_URL = os.getenv("BASE_URL")  # 从环境变量读取，未配置时默认为None（使用OpenAI官方地址）
 llm = ChatOpenAI(
     api_key=API_KEY,
     base_url=BASE_URL,
