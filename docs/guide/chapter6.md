@@ -136,7 +136,15 @@ def parse_query(state: TaskState):
 整个过程需要通过 LangGraph 的边来定义执行顺序，从而形成一个可自动运行的任务流水线。
 
 ```python
+# NotRequired 来自 Python 的 typing 模块扩展，它是 PEP 655 引入的特性
+# NotRequired 从 Python 3.11 开始内置支持
 from typing import TypedDict, NotRequired
+
+#如果你使用的是 Python ≤3.10，需要安装 typing_extensions：
+# pip install typing_extensions
+#from typing import TypedDict
+#from typing_extensions import NotRequired
+
 
 class TaskState(TypedDict):
     user_query: str #用户原始查询

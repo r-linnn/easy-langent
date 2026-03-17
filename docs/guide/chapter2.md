@@ -272,7 +272,7 @@ print(result.content)
 
 有时候，简单的提示词模板不足以让模型理解我们的需求——比如我们希望模型生成“特定格式”的内容（比如分点、带编号、有固定结构）。这时候就需要“少样本提示”：给模型看几个示例，让它照着示例的格式生成内容。LangChain的FewShotPromptTemplate就是专门做这个的。
 
-**案例：**生成“学科学习方法”，要求格式为“核心目标：xxx；学习步骤：1.xxx 2.xxx；注意事项：xxx”。我们先给模型看2个示例，再让它生成新的内容：
+**案例**：生成“学科学习方法”，要求格式为“核心目标：xxx；学习步骤：1.xxx 2.xxx；注意事项：xxx”。我们先给模型看2个示例，再让它生成新的内容：
 
 ```python
 # 导入必要的模板类
@@ -388,7 +388,15 @@ print(result.content)
 #### 2.2.3.2 动态示例选择：ExampleSelector的使用
 
 LangChain提供ExampleSelector组件，能根据输入的动态参数（如主题难度、输入长度）筛选最相关的示例，减少提示词体积，提升模型响应效率。以下是“按主题难度匹配示例”的工程化案例：
-
+运行下面脚本的时候，需要创建一个名为 `learning_method_examples.json` 的文件，内容如下：
+```
+[
+{"subject": "Python编程（入门）", "difficulty": "easy", "method": "核心目标：掌握基础语法；学习步骤：1.变量与数据类型 2.条件语句；注意事项：边学边练"},
+{"subject": "Python编程（进阶）", "difficulty": "hard", "method": "核心目标：掌握面向对象与库开发；学习步骤：1.类与对象 2.模块开发；注意事项：参与开源项目"},
+{"subject": "机器学习（入门）", "difficulty": "easy", "method": "核心目标：理解基础概念；学习步骤：1.数据预处理 2.简单模型；注意事项：用Excel辅助理解"},
+{"subject": "机器学习（进阶）", "difficulty": "hard", "method": "核心目标：掌握模型优化；学习步骤：1.特征工程 2.超参数调优；注意事项：研读论文复现实验"}
+]
+```
 ```python
 # 导入工程化所需组件
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
@@ -418,27 +426,19 @@ chat_model = ChatOpenAI(
 # 2. 工程化示例管理：从JSON文件加载示例（避免硬编码，便于维护）
 with open("learning_method_examples.json", "r", encoding="utf-8") as f:
     examples = json.load(f)
-# 示例文件格式参考（learning_method_examples.json）：
-# [
-#   {"subject": "Python编程（入门）", "difficulty": "easy", "method": "核心目标：掌握基础语法；学习步骤：1.变量与数据类型 2.条件语句；注意事项：边学边练"},
-#   {"subject": "Python编程（进阶）", "difficulty": "hard", "method": "核心目标：掌握面向对象与库开发；学习步骤：1.类与对象 2.模块开发；注意事项：参与开源项目"},
-#   {"subject": "机器学习（入门）", "difficulty": "easy", "method": "核心目标：理解基础概念；学习步骤：1.数据预处理 2.简单模型；注意事项：用Excel辅助理解"},
-#   {"subject": "机器学习（进阶）", "difficulty": "hard", "method": "核心目标：掌握模型优化；学习步骤：1.特征工程 2.超参数调优；注意事项：研读论文复现实验"}
-# ]
-
 
 # 3. ExampleSelector：按长度筛选示例
-# example_selector = LengthBasedExampleSelector(
-#     examples=examples,
-#     example_prompt=PromptTemplate(
-#         input_variables=["subject", "difficulty", "method"],
-#         template="学科：{subject}\n难度：{difficulty}\n学习方法：{method}\n"
-#     ),
-#     max_length=150,  # 控制示例总长度，避免提示词过长
-#     get_text_length=lambda x: len(x)  # 长度计算函数
-# )
+example_selector = LengthBasedExampleSelector(
+    examples=examples,
+    example_prompt=PromptTemplate(
+        input_variables=["subject", "difficulty", "method"],
+        template="学科：{subject}\n难度：{difficulty}\n学习方法：{method}\n"
+    ),
+    max_length=150,  # 控制示例总长度，避免提示词过长
+    get_text_length=lambda x: len(x)  # 长度计算函数
+)
 
-# 3. 自定义ExampleSelector：按难度筛选示例（输入含difficulty参数）
+# 4. 自定义ExampleSelector：按难度筛选示例（输入含difficulty参数）
 class DifficultyExampleSelector(BaseExampleSelector):
     """根据用户输入的 difficulty 字段筛选样本"""
     def __init__(self, examples: List[Dict[str, str]]):
@@ -455,20 +455,20 @@ class DifficultyExampleSelector(BaseExampleSelector):
         return [ex for ex in self.examples if ex.get("difficulty") == target_difficulty]
 
 
-# 4. 构建工程化少样本模板
+# 5. 构建工程化少样本模板
 few_shot_prompt = FewShotPromptTemplate(
     example_selector=example_selector,  # 替换固定examples为动态选择器
     example_prompt=PromptTemplate(
         input_variables=["subject", "difficulty", "method"],
         template="学科：{subject}\n难度：{difficulty}\n学习方法：{method}\n"
     ),
-    example_separator="\n",
+    example_separator="\n", # # 控制examples示例之间的分隔方式
     prefix="少样本提示：",
     suffix="参考以上示例，回答：\n学科：{new_subject}\n难度：{difficulty}\n学习方法：",
     input_variables=["new_subject", "difficulty"]  # 新增难度参数
 )
 
-# 5. 动态生成不同难度的提示词
+# 6. 动态生成不同难度的提示词
 # 场景1：生成入门级LangChain学习方法
 formatted_prompt_easy = few_shot_prompt.format(
     new_subject="LangChain",
@@ -505,7 +505,7 @@ print(result_hard.content)
 
 通过 PromptTemplate 和 FewShotPromptTemplate，我们解决了**“如何规范输入”**的问题；而输出解析（Output Parsing / Output Control）要解决的是另一件事：
 
-> 如何让大模型的输出，能被程序稳定、可靠地直接使用。
+> 将大模型返回的非结构化自然语言，转化为程序可直接处理的结构化数据
 
 在工程实践中，大模型天然倾向于输出**自由文本**，而业务系统需要的是**结构化数据**（列表、字典、对象）。
  输出解析层，正是连接这两者的关键桥梁。
@@ -578,6 +578,7 @@ print("StrOutputParser 解析后的字符串：")
 print(result)
 print("\n解析结果类型：", type(result))  # str
 ```
+> llm | parser 是 LangChain 1.0 + 的链式调用语法，等价于 “先调用 llm 生成结果，再将结果传入 parser 解析”，替代了传统的 “先调用模型，再手动传参给解析器” 的写法，让代码更简洁。
 
 #### 2.3.2.2 案例2： JsonOutputParser
 
@@ -617,7 +618,7 @@ result = chain.invoke({})  # 无输入参数，传入空字典
 
 print("解析后的JSON（Python字典）：")
 print(result)
-print("获取单个字段：", result["tool_name"])  # 可直接用于业务逻辑
+print("获取单个字段：", result.get('tool_name', None))  # 可直接用于业务逻辑
 ```
 
 运行结果示例：
@@ -776,12 +777,12 @@ print("解析结果类型：", type(result))
 解析结果类型： <class 'dict'>
 ```
 
-## 2.4 输入控制层核心总结
+## 2.4 输入 - 输出控制层核心总结
 
 输入控制层的核心目标是实现“输入可控制、输出可预期”，关键组件的核心价值：
 
 - PromptTemplate：通过参数化设计实现提示词的规范与复用，降低重复开发成本
-- FewShotPromptTemplate（工程化）：通过动态示例选择与批量管理，适配复杂业务场景，提升提示词效率
+- FewShotPromptTemplate：通过动态示例选择与批量管理，适配复杂业务场景，提升提示词效率
 - OutputParser：将非结构化输出转化为结构化数据，打通大模型输出与后续业务逻辑的衔接
 
 实践原则：输入控制层的设计需结合具体业务场景，优先使用LangChain开箱即用组件，复杂场景通过自定义扩展满足需求，始终兼顾易用性与工程化可维护性。
@@ -792,7 +793,7 @@ print("解析结果类型：", type(result))
 
 - 1.模型调用组件通过统一接口适配不同厂商模型，解决多模型切换的适配难题；
 - 2.提示词模板（基础/少样本）通过参数化与示例引导实现提示规范复用，结合ExampleSelector完成工程化管理；
-- 3.输出解析器将非结构化输出转化为结构化数据，搭配重试机制保障输出可靠性，三者共同实现“输入-输出”全链路可控。
+- 3.输出解析器将非结构化输出转化为结构化数据，三者共同实现“输入-输出”全链路可控。
 
 ## 2.6 本章练习
 
