@@ -258,7 +258,6 @@ print(result)
 ```
 Hugging Face模型回复：
 请用3句话解释什么是LangChain？LangChain是一个基于LLM的多模态大模型，能够处理多模态数据，包括文本、图像、视频等，支持多种任务，如文本生成、图像生成、视频生成等。它通过构建一个强大的语言模型，可以实现跨模态的对话交互，提供更丰富的对话体验。此外，LangChain还支持多种任务和使用场景，适用于各种应用场景，如创意写作、图像生成、视频生成等。总之，LangChain是一个强大的多模态大模型，能够实现跨模态的对话交互，提供丰富的对话体验，适用于各种应用场景。
-答案中需要包含以下关键词：LangChain、多模态、跨模态、对话交互、多模态数据、文本生成、图像生成、视频生成、创意写作、图像生成、视频生成、跨模态对话交互、多模态数据处理、文本生成、 图像生成、视频生成、创意写作、多模态数据、文本生成、图像
 ```
 
 看到了吧？不管是OpenAI还是Hugging Face的模型，调用逻辑都是“初始化模型→构造输入→invoke()调用→输出结果”，这就是统一接口的好处。后续开发中，你可以根据项目需求（比如成本、隐私要求）灵活切换模型，不用大幅修改代码。
@@ -497,8 +496,7 @@ chat_model = ChatOpenAI(
 
 # 2. 工程化示例管理：从JSON文件加载示例（避免硬编码，便于维护）
 with open("learning_method_examples.json", "r", encoding="utf-8") as f:
-    data = json.load(f)
-    examples = data["subject_examples"]  # 从JSON中提取示例数据
+    examples = json.load(f)  # 从JSON中直接提取示例数据列表
 # 示例文件格式参考（learning_method_examples.json）前面内容
 
 # 3. ExampleSelector：按长度筛选示例
@@ -514,7 +512,7 @@ example_selector = LengthBasedExampleSelector(
 
 # 4. 自定义ExampleSelector：按难度筛选示例（输入含difficulty参数）
 #class DifficultyExampleSelector(BaseExampleSelector):
-    """根据用户输入的 difficulty 字段筛选样本"""
+    #"""根据用户输入的 difficulty 字段筛选样本"""
     #def __init__(self, examples: List[Dict[str, str]]):
         #self.examples = examples
 
@@ -539,7 +537,7 @@ few_shot_prompt = FewShotPromptTemplate(
         input_variables=["subject", "difficulty", "method"],
         template="学科：{subject}\n难度：{difficulty}\n学习方法：{method}\n"
     ),
-    example_separator="\n", # # 控制examples示例之间的分隔方式
+    example_separator="\n", # 控制examples示例之间的分隔方式
     prefix="少样本提示：",
     suffix="参考以上示例，回答：\n学科：{new_subject}\n难度：{difficulty}\n学习方法：",
     input_variables=["new_subject", "difficulty"]  # 新增难度参数
@@ -586,7 +584,7 @@ print(result_hard.content)
 
 ## 2.3 输出解析：让输出更可控
 
-通过 PromptTemplate 和 FewShotPromptTemplate，我们解决了**“如何规范输入”**的问题；而输出解析（Output Parsing / Output Control）要解决的是另一件事：
+通过 PromptTemplate 和 FewShotPromptTemplate，我们解决了**“如何向模型提供结构化、规范化的格式指令”**的问题；而输出解析（Output Parsing / Output Control）要解决的是另一件事：
 
 > 将大模型返回的非结构化自然语言，转化为程序可直接处理的结构化数据
 
@@ -628,11 +626,11 @@ StrOutputParser 的核心作用**不是清洗文本格式**，也不会主动去
 - 让模型输出可以直接参与后续字符串处理、条件判断或二次解析
 - 作为更复杂解析流程（如 JSON 解析、规则解析）的**底座组件**
 
-在 LangChain 1.0.0 以后, StrOutputParser 是**兼容性最好、稳定性最高、使用成本最低**的输出解析方案,适合作为所有复杂系统的起点。
+在 LangChain 1.0.0 以后，StrOutputParser 是**兼容性最好、稳定性最高、使用成本最低**的输出解析方案，适合作为所有复杂系统的起点。
 
-> **⚠️ 温馨提示**：在 LangChain 新版本（v0.3.x+）中, `StrOutputParser` 的解析结果可能是一个 `TextAccessor` 类型,虽然它的 `print` 时和字符串一样,但 `type()` 检查会显示其真实类型。
+> **⚠️ 温馨提示**：在 LangChain 新版本（v0.3.x+）中，`StrOutputParser` 的解析结果可能是一个 `TextAccessor` 类型，虽然它的 `print` 时和字符串一样，但 `type()` 检查会显示其真实类型。
 >
-> 不过这不影响其作为字符串的后续使用,支持字符串切片、拼接等操作。
+> 不过这不影响其作为字符串的后续使用，支持字符串切片、拼接等操作。
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -866,7 +864,7 @@ print("解析结果类型：", type(result))
 
 ## 2.4 核心组件总结
 
-输入控制层的核心目标是实现“输入可控制、输出可预期”，关键组件的核心价值：
+本章核心组件的目标是实现“输入可控制、输出可预期”，关键组件的核心价值：
 
 - PromptTemplate：通过参数化设计实现提示词的规范与复用，降低重复开发成本
 - FewShotPromptTemplate：通过动态示例选择与批量管理，适配复杂业务场景，提升提示词效率
@@ -876,7 +874,7 @@ print("解析结果类型：", type(result))
 
 ## 2.5 本章小结
 
-本章核心围绕LangChain输入控制层的实操应用与工程化落地展开，本章重点掌握三大核心组件的协同逻辑,关键要点总结如下：
+本章核心围绕LangChain输入控制层的实操应用与工程化落地展开，本章重点掌握三大核心组件的协同逻辑，关键要点总结如下：
 
 - 1.模型调用组件通过统一接口适配不同厂商模型，解决多模型切换的适配难题；
 - 2.提示词模板（基础/少样本）通过参数化与示例引导实现提示规范复用，结合ExampleSelector完成工程化管理；
