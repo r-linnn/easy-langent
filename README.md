@@ -83,6 +83,8 @@
 
 </div>
 
+感谢内测组
+-  [Zeno](https://github.com/ZENO-CHOW)
 
 ## 🧑‍💻参与贡献
 
