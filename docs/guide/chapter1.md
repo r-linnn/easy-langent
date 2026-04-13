@@ -132,35 +132,28 @@ conda activate langent-env
 - 🔄 **统一管理**：同时管理项目依赖和虚拟环境
 - 🐍 **多版本 Python**：轻松切换不同 Python 版本
 
+
+## 1. uv添加国内源（可选，建议）
+Linux/Unix：在 `~/.config/uv/uv.toml` 或者 `/etc/uv/uv.toml`
+Windows：在 `%AppData%\uv\uv.toml` 或者 `%ProgramData%\uv\uv.toml`
+填写如下内容
 ```bash
-# 1. 创建虚拟环境（uv 默认创建 .venv 目录）
-uv venv --python 3.11
-
-# 2. 激活虚拟环境
-## Windows
-.\.venv\Scripts\activate
-
-## Mac / Linux
-source .venv/bin/activate
+[[index]]
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
+default = true
 ```
 
-✅ **激活成功标志**：终端前会出现 `(easy-langent)`
-
-```
-(easy-langent) PS D:\easy-langent>
-```
-
-**安装依赖（方式一：uv）**
-
+## 2. 初始化项目
+打开终端并导航到对应目录
 ```bash
-# 安装所有依赖（推荐）
-uv add langchain langchain-openai langgraph langchain-community ipykernel
-
-# 或使用 pip
-pip install langchain langchain_openai langgraph langchain-community ipykernel
+# 全系统通用
+uv venv -p 3.12
+uv init
 ```
 
-可以使用 `uv sync` 同步所有 `pyproject.toml` 中指定的依赖。实际上，当项目中有 `pyproject.toml` 文件时，`uv sync` 会自动识别并安装其中的依赖，包括创建虚拟环境，如果不存在。
+## 3. 后续操作
+使用uv run xxx.py文件替代 python 即可。
+
 
 ⚠️ 注意事项：
 
@@ -170,7 +163,7 @@ pip install langchain langchain_openai langgraph langchain-community ipykernel
 **步骤2：安装核心依赖**
 
 在激活的虚拟环境中，执行以下命令安装LangChain、LangGraph及常用依赖：
-
+## 1. 常规python/conda 安装依赖
 ```bash
 # 安装LangChain核心库
 pip install langchain
@@ -183,6 +176,13 @@ pip install langchain_openai
 # 安装其他辅助依赖
 pip install python-dotenv  # 用于管理环境变量（存储API密钥）
 pip install ipykernel      # 用于在Jupyter Notebook中运行代码
+```
+
+## 2. uv 安装依赖
+如果下载速度很慢记得上方添加国内源
+
+```bash
+uv add langchain langchain-openai langgraph langchain-community ipykernel
 ```
 
 安装成功验证：在终端输入`python`，进入Python交互环境，执行以下代码无报错即可：
