@@ -153,9 +153,9 @@ default = true
 ```bash
 # 创建项目目录和虚拟环境
 # 全系统通用
-uv init easy-langent
+uv init easy-langent --python 3.10
 cd easy-langent
-uv venv -p 3.10
+uv venv
 ```
 
 **3. 后续操作**
