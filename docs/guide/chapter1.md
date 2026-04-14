@@ -155,6 +155,7 @@ default = true
 # 创建项目目录和虚拟环境
 # 全系统通用
 uv init langent-env
+cd langent-env
 uv venv -p 3.10
 ```
 
