@@ -475,7 +475,7 @@ print(chat_with_memory("我刚才叫什么名字？"))
 > 一般来说，应该是使用请求api获得实时的天气情况，但考虑到这类api一般是要收费的，为了学习方便，这里案例调整为固定函数的形式。
 
 ```python
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
@@ -512,7 +512,7 @@ tools = [weather_query]
 # ======================
 # 3. 创建 Agent（开启 debug）
 # ======================
-agent = create_react_agent(
+agent = create_agent(
     model=llm,
     tools=tools,
     debug=True,  # 👈 打开过程打印
@@ -571,7 +571,7 @@ print(response["messages"][-1].content)
 #### 3.2.2.2 学习案例：温度单位转换
 
 ```python
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
@@ -626,7 +626,7 @@ system_prompt = """
 # ======================
 # 4. 创建 Agent
 # ======================
-agent = create_react_agent(
+agent = create_agent(
     model=llm,
     tools=tools,
     system_prompt=system_prompt,
@@ -737,7 +737,7 @@ def tool(
 #### 3.2.3.1 学习案例：创建文件
 
 ```python
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from langchain_community.agent_toolkits import FileManagementToolkit
 from dotenv import load_dotenv
@@ -766,7 +766,7 @@ tools = toolkit.get_tools()
 # -------------------
 # 3. 创建 Agent（最新版）
 # -------------------
-agent = create_react_agent(
+agent = create_agent(
     model=llm,
     tools=tools,
     debug=True,  # 打开调试，显示模型思考和工具调用过程
