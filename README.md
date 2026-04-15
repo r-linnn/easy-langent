@@ -7,11 +7,13 @@
 
 [![GitHub stars](https://img.shields.io/github/stars/datawhalechina/easy-langent?style=flat-square)](https://github.com/datawhalechina/easy-langent/stargazers) [![GitHub forks](https://img.shields.io/github/forks/datawhalechina/easy-langent?style=flat-square)](https://github.com/datawhalechina/easy-langent/network/members) [![GitHub issues](https://img.shields.io/github/issues/datawhalechina/easy-langent?style=flat-square)](https://github.com/datawhalechina/easy-langent/issues) [![GitHub license](https://img.shields.io/github/license/datawhalechina/easy-langent?style=flat-square)](https://github.com/datawhalechina/easy-langent/blob/main/LICENSE)
 
-📚 [在线阅读地址](https://datawhalechina.github.io/easy-langent/)
-
-
 </div>
 
+<div align="center">
+    📚 在线阅读：
+    <a href="https://datawhalechina.github.io/easy-langent/" target="_blank" style="text-decoration: none; color: #007bff; margin: 0 5px;"><strong>GitHub Pages</strong></a> |
+    <a href="https://easy-langent.datawhale.cc/" target="_blank" style="text-decoration: none; color: #28a745; margin: 0 5px;"><strong>国内镜像</strong></a>
+</div>
 
 ## 🚀项目介绍
 
