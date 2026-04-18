@@ -734,8 +734,12 @@ def tool(
 
 > 运行注意事项：注意文件路径权限，Windows 路径用`\\`或`/`，避免权限不足导致操作失败。
 
-#### 3.2.3.1 学习案例：创建文件
+前置安装，在本节的实践案例中引入文件操作工具，需要额外安装 `langchain_community` 包。
+```bash
+pip install langchain_community
+```
 
+#### 3.2.3.1 学习案例：创建文件
 ```python
 from langgraph.prebuilt import create_react_agent
 from langchain_openai import ChatOpenAI
