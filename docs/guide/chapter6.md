@@ -501,7 +501,7 @@ display(Image(graph.get_graph().draw_mermaid_png()))
 
 ```python
 def route_by_intent(state: TaskState):
-    if state["intent"] == "summarize":
+    if state.get("intent") == "summarize":
         return "summarize_node"
     else:
         return "rewrite_node"
