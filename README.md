@@ -68,6 +68,7 @@
 | [MCPChat](./project/MCPChat/README.md)                   | 基于langchain开发 | jspi-fu |
 | [数据处理智能体](./project/DataAgent/README.md)          | 基于langchain开发 | jspi-fu |
 | [医疗RAG诊断](./project/MedicalRag/README.md)            | 基于langchain开发  |道法自然|
+| [个人助手](./project/PersonalMemoryAssistant/README.md)  | 基于langchain开发  |念安|
 
 ## ✨核心贡献者
 - [牧小熊-项目负责人](https://github.com/muxiaoxiong)(Datawhale成员)
