@@ -1601,7 +1601,18 @@ def review_agent(state):
     ) | llm
 
     result = prompt.invoke({"plot": state["plot"]})
-    return {"review_result": result.content.strip().lower()}
+    review_result = result.content.strip().lower()
+    
+    # 在节点中处理计数更新（正确的不可变更新方式）
+    retry_count = state.get("retry_count", 0)
+    if review_result == "retry":
+        retry_count = retry_count + 1
+    
+    return {
+        "review_result": review_result,
+        "retry_count": retry_count
+    }
+    
 
 # ================== 2. 条件分支（增加循环次数限制） ==================
 MAX_RETRIES = 2  # 最大重试次数
@@ -1609,18 +1620,19 @@ MAX_RETRIES = 2  # 最大重试次数
 def decide_next_node(state):
     """
     - 'pass' -> 结束
-    - 'retry' -> 重新生成情节，最多 MAX_RETRIES 次
+    - 'retry' + 未超限 -> 重新生成情节
+    - 'retry' + 超限 -> 标记失败并结束
     """
     retry_count = state.get("retry_count", 0)
-    if state["review_result"] == "pass":
+    review_result = state.get("review_result", "retry")
+    
+    if review_result == "pass":
         return "end"
     elif retry_count >= MAX_RETRIES:
         # 超过最大重试次数，标记失败并结束
-        state["failed"] = True
         return "end"
     else:
-        # 重试次数 +1
-        state["retry_count"] = retry_count + 1
+        # 返回 plot 节点继续重试
         return "plot"
 
 # ================== 3. 构建循环逻辑图 ==================
@@ -1628,7 +1640,10 @@ graph = StateGraph(NovelState)
 
 graph.add_node("plot", plot_agent)
 graph.add_node("review", review_agent)
-graph.add_node("end", lambda state: state)
+graph.add_node("end", lambda state: {
+    **state,
+    "failed": state.get("review_result") != "pass" and state.get("retry_count", 0) >= MAX_RETRIES
+})
 
 graph.add_edge(START, "plot")
 graph.add_edge("plot", "review")
