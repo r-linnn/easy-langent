@@ -1,119 +1,154 @@
-<div align='center'>
-    <img src="./logo.png" alt="alt text" width="100%">
-    <h1>Easy-langent</h1>
-</div>
+# 🕵️ 谁是卧底 — 人机对战游戏
 
-<div align="center">
+经典派对游戏「谁是卧底」的 AI 对战实现，包含 **Python 终端版**（LangGraph + LLM）和 **Web 网页版**（纯前端离线）两个版本。
 
-[![GitHub stars](https://img.shields.io/github/stars/datawhalechina/easy-langent?style=flat-square)](https://github.com/datawhalechina/easy-langent/stargazers) [![GitHub forks](https://img.shields.io/github/forks/datawhalechina/easy-langent?style=flat-square)](https://github.com/datawhalechina/easy-langent/network/members) [![GitHub issues](https://img.shields.io/github/issues/datawhalechina/easy-langent?style=flat-square)](https://github.com/datawhalechina/easy-langent/issues) [![GitHub license](https://img.shields.io/github/license/datawhalechina/easy-langent?style=flat-square)](https://github.com/datawhalechina/easy-langent/blob/main/LICENSE)
+---
 
-</div>
+## 📖 游戏规则
 
-<div align="center">
-    📚 在线阅读：
-    <a href="https://datawhalechina.github.io/easy-langent/" target="_blank" style="text-decoration: none; color: #007bff; margin: 0 5px;"><strong>GitHub Pages</strong></a> |
-    <a href="https://easy-langent.datawhale.cc/" target="_blank" style="text-decoration: none; color: #28a745; margin: 0 5px;"><strong>国内镜像</strong></a>
-</div>
+| 角色 | 目标 |
+|------|------|
+| 👤 **平民**（4人） | 拿到相同词语，通过发言和投票找出卧底 |
+| 🕵️ **卧底**（1人） | 拿到相似但不同的词语，隐藏身份存活到底 |
 
-## 🚀项目介绍
+- 每轮所有存活玩家依次发言，描述自己的词语（**不能直接说出**）
+- 发言结束后投票淘汰最可疑的玩家
+- **平民胜利**：卧底被淘汰
+- **卧底胜利**：卧底人数 ≥ 剩余平民人数
 
-当大模型技术从“单点能力突破”迈向“场景化应用落地”，智能体（Agent）已成为连接技术与实际需求的核心载体。然而，多数初学者在接触智能体开发时，常陷入“框架概念繁杂、实操无从下手、技术与应用脱节”的困境——要么被复杂的理论体系吓退，要么掌握了框架基础却不知如何落地真实项目。
+---
 
-“langent”由“lang”（代表LangChain、LangGraph等语言大模型开发框架）与“agent”（智能体）合并而来，核心目标是打破“理论学习”与“实战开发”的壁垒：让读者在系统掌握智能体核心逻辑的同时，真正学会运用LangChain、LangGraph框架解决实际开发问题，实现“从懂概念到会开发”的跨越。
+## 🎮 版本对比
 
-我们摒弃冗余的理论堆砌，聚焦“用框架做开发”的核心需求，每一章都配套针对性的实操任务，确保读者在学习过程中能够动手实践、深化理解。
+| 特性 | Python 终端版 | Web 网页版 |
+|------|:------------:|:----------:|
+| AI 发言引擎 | DeepSeek LLM 实时生成 | 本地模板 + 启发式策略 |
+| 网络依赖 | 需要 API 调用 | ✅ 完全离线 |
+| 界面 | 命令行终端 | 浏览器 UI（支持暗色模式） |
+| 交互方式 | 键盘输入 | 点击/触摸 |
+| 发言质量 | 更自然多样 | 模板化但个性化 |
+| 技术栈 | Python + LangGraph + LangChain | HTML + Tailwind CSS + Vanilla JS |
+| 适合场景 | 学习 LangGraph / 对话式 AI | 快速开玩 / 分享给朋友 |
 
-本项目配套的学习大纲遵循“循序渐进、实践导向”的设计原则，从框架基础认知入手，逐步深入核心组件实操、进阶应用开发，再到多智能体协作与系统优化，最终完成综合实战项目。
+---
 
-## 📌项目受众
+## 🐍 Python 终端版
 
-无论你是希望入门智能体开发的高校学生，还是寻求技术落地的开发者，都能通过本项目找到清晰的学习路径。
+**文件路径**：`easy-langent/chapter8_player.py`
 
-**前置知识要求：**
+### 技术架构
 
-- 熟悉Python编程语言基础
-- 对大模型技术有基本了解
-- 对智能体的核心概念有基本了解
+基于 **LangGraph** 状态图构建，6 个节点按流程执行：
 
-如果你还不掌握上述前置知识，建议先完成以下课程：
+```
+生成词语 → 分配角色 → 发言 → 投票 → 裁决 → (循环/总结)
+                                    ↓
+                              游戏是否结束？
+                             ┌── 否 → 回到"发言"
+                             └── 是 → 游戏总结
+```
 
-- [Happy-llm](https://github.com/datawhalechina/happy-llm)
-- [Hello-Agents](https://github.com/datawhalechina/hello-agents)
+### 核心依赖
 
+- `langgraph` — 状态图编排
+- `langchain-openai` — LLM 调用（DeepSeek API）
+- `langchain-core` — Prompt 模板 + 输出解析
+- `python-dotenv` — 环境变量管理
 
-## 📖 内容导航
+### 运行方式
 
-| 章节                                              | 关键内容                     | 状态 |
-| ------------------------------------------------- | ---------------------------- | ---- |
-| <strong>第一部分：前言</strong> |  |  |
-| [前言](./docs/guide/前言.md)        | 前言与读者建议   | ✅    |
-| [第一章 LangChain与LangGraph框架认知](./docs/guide/chapter1.md) |  框架介绍、环境安装、lang框架体验| ✅    | 
-| <strong>第二部分：LangChain组件与实战</strong> |  |  |
-| [第二章 LangChain核心组件实操](./docs/guide/chapter2.md) | 模型调用、提示词模板、输出解析 | ✅    |
-| [第三章 LangChain进阶组件实操](./docs/guide/chapter3.md) | 记忆、工具、组合实践 | ✅    |
-| [第四章 LangChain应用级系统设计与RAG实践](./docs/guide/chapter4.md) | 链式工作流、RAG实践 | ✅    |
-| [第五章 课程中期综合实践：智能体应用设计与实现](./docs/guide/chapter5.md) | 中期综合实践 | ✅    |
-| <strong>第三部分：LangGraph组件与实战</strong> |  |  |
-| [第六章 LangGraph基础：有状态工作流与核心概念实操](./docs/guide/chapter6.md) | 有状态工作流、节点、边、状态管理 | ✅    |
-| [第七章 LangGraph进阶：多智能体协作与复杂流程管控](./docs/guide/chapter7.md) | 多智能体协作、复杂流程管控 | ✅    |
-| [第八章 综合实战：构建"谁是卧底"游戏智能体](./docs/guide/chapter8.md) | 综合实战 | ✅    |
-| [结语](./docs/guide/结语.md)        | 项目总结与展望   | ✅    |
+```bash
+# 1. 安装依赖
+pip install langgraph langchain-openai langchain-core python-dotenv
 
-## 🤖 智能体 Agent 项目合集
-**📌 组队学习优秀课程项目**
-| 项目名称                                                 | 备注              | 作者    |
-| -------------------------------------------------------- | ----------------- | ------- |
-| [狼人杀（上帝视角）](./project/werewolfGameAi/README.md) | 基于langgraph开发 | 内测组  |
-| [智能知识库问答](./project/AgenticRag/README.md)         | 基于langchain开发 | jspi-fu |
-| [MCPChat](./project/MCPChat/README.md)                   | 基于langchain开发 | jspi-fu |
-| [数据处理智能体](./project/DataAgent/README.md)          | 基于langchain开发 | jspi-fu |
-| [医疗RAG诊断](./project/MedicalRag/README.md)            | 基于langchain开发  |道法自然|
-| [个人助手](./project/PersonalMemoryAssistant/README.md)  | 基于langchain开发  |念安|
+# 2. 配置 API Key
+# 在项目目录创建 .env 文件：
+# API_KEY=your_deepseek_api_key
 
-## ✨核心贡献者
-- [牧小熊-项目负责人](https://github.com/muxiaoxiong)(Datawhale成员)
-- [柯慕灵-项目贡献者](https://github.com/1985312383)(Datawhale成员)
+# 3. 运行
+python chapter8_player.py
+```
 
-## ❤️特别感谢
+### 设计亮点
 
-- 感谢 [@Sm1les](https://github.com/Sm1les) 对本项目的帮助与支持
-- 感谢内测组对本项目的帮助与支持
-     [Zeno](https://github.com/ZENO-CHOW)
-- 感谢所有为本项目做出贡献的开发者们 ❤️
+- **LLM 驱动的智能发言**：平民和卧底分别使用不同的 System Prompt，发言自然且具有策略性
+- **上下文感知**：AI 参考历史发言记录，避免重复和自相矛盾
+- **防泄露机制**：角色信息仅在玩家自身界面显示，AI 之间互不知晓
+- **兜底策略**：LLM 调用失败时自动切换到预设发言库，保证游戏不中断
+- **逐字打印**：模拟实时对话的临场感
 
-<div align="left">
+---
 
-<a href="https://github.com/datawhalechina/easy-langent/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=datawhalechina/easy-langent&v=1" />
-</a>
+## 🌐 Web 网页版
 
-</div>
+**文件路径**：`WorkBuddy/20260429165208/who-is-undercover-web.html`
 
+### 技术架构
 
-## 🧑‍💻参与贡献
+单文件纯前端应用，零依赖后端：
 
-- 如果你发现了一些问题，可以提Issue进行反馈，如果提完没有人回复你可以联系[保姆团队](https://github.com/datawhalechina/DOPMC/blob/main/OP.md)的同学进行反馈跟进~
-- 如果你想参与贡献本项目，可以提Pull request，如果提完没有人回复你可以联系[保姆团队](https://github.com/datawhalechina/DOPMC/blob/main/OP.md)的同学进行反馈跟进~
-- 如果你对 Datawhale 很感兴趣并想要发起一个新的项目，请按照[Datawhale开源项目指南](https://github.com/datawhalechina/DOPMC/blob/main/GUIDE.md)进行操作即可~
+- **Tailwind CSS** — 响应式 UI + 暗色模式
+- **Font Awesome** — 图标
+- **Vanilla JavaScript** — 游戏逻辑与 DOM 交互
 
-## 📊 Star History
+### 运行方式
 
-<div align="center">
+双击 HTML 文件即可在浏览器中运行，**无需安装任何依赖**。
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=datawhalechina/easy-langent&type=Date&theme=dark" />
-  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=datawhalechina/easy-langent&type=Date" />
-  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=datawhalechina/easy-langent&type=Date" />
-</picture>
-</div>
+### 设计亮点
 
-## 🌟关注我们
+- **纯离线运行**：AI 发言基于本地模板 + 启发式策略，无需网络和 API
+- **聊天式界面**：发言以聊天气泡展示，区分玩家/AI/系统消息
+- **暗色模式**：支持系统偏好自动切换
+- **响应式布局**：适配桌面和移动端
+- **AI 个性化**：4 个 AI 玩家各有不同发言风格（简洁/感性/幽默/沉稳）
+- **智能投票**：AI 根据发言内容分析可疑度，非随机投票
+- **完整游戏流程**：欢迎 → 角色分配 → 发言 → 投票 → 裁决 → 结果揭秘
 
-<div align=center>
-<p>扫描下方二维码关注公众号：Datawhale</p>
-<img src="https://raw.githubusercontent.com/datawhalechina/pumpkin-book/master/res/qrcode.jpeg" width = "180" height = "180">
-</div>
+### AI 行为说明
 
-## LICENSE
+| AI 玩家 | 发言风格 | 投票风格 |
+|---------|---------|---------|
+| 小明 | 简洁明了 | 理性分析 |
+| 小红 | 细致感性 | 仔细思考 |
+| 小刚 | 幽默轻松 | 综合判断 |
+| 老王 | 沉稳老练 | 经验判断 |
 
-<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-lightgrey" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+---
+
+## 🎯 游戏策略
+
+### 平民技巧
+- 描述词语的**具体特征**，而非泛泛而谈
+- 避免说出过于明显的关键词，给卧底模仿空间
+- 关注发言**模糊、矛盾**的玩家
+- 对比多轮发言，找出不一致之处
+
+### 卧底技巧
+- **模仿平民**的描述风格，模糊处理核心差异
+- 不要太准确（你的词不是平民词），也不要太模糊
+- 投票时保持逻辑连贯，避免引起怀疑
+- 引导平民互相怀疑
+
+---
+
+## 📂 项目结构
+
+```
+├── easy-langent/
+│   └── chapter8_player.py        # Python 终端版（LangGraph + LLM）
+└── WorkBuddy/
+    └── 20260429165208/
+        └── who-is-undercover-web.html  # Web 网页版（纯前端）
+```
+
+---
+
+## 📝 开发笔记
+
+这两个版本实现了同一款游戏的不同技术路线：
+
+- **Python 版**侧重于学习 LangGraph 状态图编排和 LLM 集成，展示了如何用大模型驱动游戏 NPC 的发言和推理
+- **Web 版**侧重于用户体验和可访问性，将 AI 逻辑本地化，实现了零门槛的即开即玩
+
+两个版本的词语对、游戏规则和胜负判定逻辑保持一致，可根据场景灵活选择。

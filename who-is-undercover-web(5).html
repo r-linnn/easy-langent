@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>谁是卧底 · 网页版</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 自定义样式 */
+        :root {
+            --primary-color: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --dark-bg: #1f2937;
+            --light-bg: #f9fafb;
+        }
+        
+        .chat-bubble {
+            max-width: 80%;
+            border-radius: 1rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.75rem;
+            position: relative;
+        }
+        
+        .chat-bubble.player {
+            background-color: #dbeafe;
+            border: 1px solid #bfdbfe;
+            margin-left: auto;
+            border-bottom-right-radius: 0.25rem;
+        }
+        
+        .chat-bubble.ai {
+            background-color: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            margin-right: auto;
+            border-bottom-left-radius: 0.25rem;
+        }
+        
+        .chat-bubble.system {
+            background-color: #fef3c7;
+            border: 1px solid #fde68a;
+            margin: 0.5rem auto;
+            max-width: 90%;
+            border-radius: 0.75rem;
+        }
+        
+        .vote-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .vote-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .vote-btn.selected {
+            background-color: var(--primary-color) !important;
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .game-section {
+            transition: opacity 0.3s ease;
+        }
+        
+        .hidden-section {
+            display: none;
+            opacity: 0;
+        }
+        
+        .visible-section {
+            display: block;
+            opacity: 1;
+        }
+        
+        /* 滚动条样式 */
+        .scrollable-area {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+        
+        .scrollable-area::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .scrollable-area::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        
+        .scrollable-area::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        
+        /* 暗色模式支持 */
+        @media (prefers-color-scheme: dark) {
+            .dark\:bg-gray-900 {
+                background-color: #111827 !important;
+            }
+            
+            .dark\:text-white {
+                color: white !important;
+            }
+            
+            .dark\:text-gray-300 {
+                color: #d1d5db !important;
+            }
+            
+            .dark\:bg-gray-800 {
+                background-color: #1f2937 !important;
+            }
+            
+            .dark\:border-gray-700 {
+                border-color: #374151 !important;
+            }
+            
+            .chat-bubble.player {
+                background-color: #1e3a8a;
+                border-color: #1e40af;
+                color: white;
+            }
+            
+            .chat-bubble.ai {
+                background-color: #374151;
+                border-color: #4b5563;
+                color: white;
+            }
+            
+            .chat-bubble.system {
+                background-color: #78350f;
+                border-color: #92400e;
+                color: white;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-300 min-h-screen transition-colors duration-200">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- 标题区域 -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                <i class="fas fa-user-secret mr-3"></i>谁是卧底 · 网页版
+            </h1>
+            <p class="text-gray-600 dark:text-gray-400">1名真实玩家 + 4名AI对战 · 纯前端离线游戏</p>
+            <div class="flex justify-center items-center mt-4 space-x-4">
+                <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <span class="text-sm">平民</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                    <span class="text-sm">卧底</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                    <span class="text-sm">玩家</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-gray-500 mr-2"></div>
+                    <span class="text-sm">AI</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 游戏主容器 -->
+        <main>
+            <!-- 第1部分：欢迎和玩家设置 -->
+            <section id="welcome-section" class="game-section visible-section bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+                    <i class="fas fa-gamepad mr-2"></i>欢迎来到「谁是卧底」
+                </h2>
+                
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">游戏规则：</h3>
+                    <ul class="space-y-2 text-gray-600 dark:text-gray-400">
+                        <li class="flex items-start">
+                            <i class="fas fa-users text-blue-500 mt-1 mr-2"></i>
+                            <span>共5名玩家（1名真实玩家 + 4名AI：小明、小红、小刚、老王）</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-tags text-green-500 mt-1 mr-2"></i>
+                            <span>每人持有一个词语，其中1人是卧底，词语与平民不同</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-comment-alt text-yellow-500 mt-1 mr-2"></i>
+                            <span>每轮所有玩家依次发言，描述自己的词语但不能直接说出</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-vote-yea text-red-500 mt-1 mr-2"></i>
+                            <span>发言结束后投票淘汰最可疑的玩家</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-bullseye text-purple-500 mt-1 mr-2"></i>
+                            <span>平民目标：找出并淘汰所有卧底</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-user-secret text-gray-700 dark:text-gray-300 mt-1 mr-2"></i>
+                            <span>卧底目标：存活到自身人数 ≥ 剩余平民人数</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="player-name" class="block text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-user-circle mr-2"></i>请输入你的游戏昵称：
+                    </label>
+                    <div class="flex">
+                        <input type="text" id="player-name" 
+                               class="flex-grow px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                               placeholder="请输入昵称" value="玩家">
+                        <button id="start-game-btn" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-r-lg transition duration-200 flex items-center">
+                            <i class="fas fa-play mr-2"></i>开始游戏
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">注意：不能使用"小明"、"小红"、"小刚"、"老王"这些AI玩家的名字</p>
+                </div>
+                
+                <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <h4 class="font-semibold text-blue-800 dark:text-blue-300 mb-2">
+                        <i class="fas fa-lightbulb mr-2"></i>游戏提示：
+                    </h4>
+                    <p class="text-blue-700 dark:text-blue-400">游戏完全在浏览器中运行，无需网络连接。<strong>AI发言已升级</strong>：使用智能生成策略，发言自然多样，支持上下文感知和个性化风格。</p>
+                </div>
+            </section>
+
+            <!-- 第2部分：角色和词语分配（私密信息） -->
+            <section id="role-section" class="game-section hidden-section bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6 border-2 border-blue-300 dark:border-blue-700">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+                    <i class="fas fa-user-secret mr-2"></i>你的私密信息
+                </h2>
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-6 mb-6">
+                    <div class="text-center mb-6">
+                        <div id="role-icon" class="text-5xl mb-4"></div>
+                        <h3 id="role-title" class="text-2xl font-bold mb-2"></h3>
+                        <p id="role-word" class="text-3xl font-bold text-blue-700 dark:text-blue-300 my-4"></p>
+                    </div>
+                    
+                    <div id="role-tips" class="space-y-3"></div>
+                    
+                    <div class="mt-8 pt-6 border-t border-blue-200 dark:border-blue-800">
+                        <p class="text-gray-600 dark:text-gray-400 text-center">
+                            <i class="fas fa-info-circle mr-2"></i>此信息仅你可见，其他玩家不知道你的角色和词语
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                        <i class="fas fa-users mr-2"></i>本局玩家
+                    </h4>
+                    <div id="player-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3"></div>
+                </div>
+                
+                <div class="text-center">
+                    <button id="confirm-role-btn" 
+                            class="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-3 rounded-lg transition duration-200 text-lg flex items-center justify-center mx-auto">
+                        <i class="fas fa-check-circle mr-2"></i>我已记好词语，继续游戏
+                    </button>
+                </div>
+            </section>
+
+            <!-- 第3部分：发言阶段 -->
+            <section id="speech-section" class="game-section hidden-section bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
+                        <i class="fas fa-comments mr-2"></i>
+                        <span id="round-title">第 <span id="round-number">1</span> 轮 · 发言阶段</span>
+                    </h2>
+                    <div class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 px-4 py-2 rounded-lg font-semibold">
+                        剩余玩家: <span id="remaining-players-count">5</span> 人
+                    </div>
+                </div>
+                
+                <!-- 聊天区域 -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                        <i class="fas fa-history mr-2"></i>发言记录
+                    </h3>
+                    <div id="chat-container" class="scrollable-area bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 h-80 overflow-y-auto mb-4">
+                        <!-- 发言消息会动态添加到这里 -->
+                        <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                            <i class="fas fa-comment-dots text-3xl mb-2"></i>
+                            <p>发言阶段即将开始...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 玩家发言输入区域 -->
+                <div id="player-speech-input" class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-5 mb-6">
+                    <h3 class="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-3">
+                        <i class="fas fa-microphone mr-2"></i>轮到你的发言
+                    </h3>
+                    <div class="mb-4">
+                        <p class="text-gray-700 dark:text-gray-300 mb-2">
+                            你的词语: <span id="player-current-word" class="font-bold text-blue-700 dark:text-blue-300"></span>
+                        </p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            <i class="fas fa-exclamation-triangle mr-1"></i> 提示：描述词语特征，但不能直接说出词语！
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="speech-input" class="block text-gray-700 dark:text-gray-300 mb-2">请输入发言内容 (10-100字)：</label>
+                        <textarea id="speech-input" rows="3" 
+                                  class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                                  placeholder="例如：这是一种日常饮用的饮品，有多种口味可选..."></textarea>
+                        <div class="flex justify-between mt-2">
+                            <p id="speech-length" class="text-sm text-gray-500 dark:text-gray-400">当前字数: 0</p>
+                            <p id="speech-validation" class="text-sm text-red-500 hidden">
+                                <i class="fas fa-exclamation-circle mr-1"></i>发言长度不符要求 (10-100字)
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button id="submit-speech-btn" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition duration-200 flex items-center">
+                            <i class="fas fa-paper-plane mr-2"></i>提交发言
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- AI发言状态 -->
+                <div id="ai-speech-status" class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+                    <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                        <i class="fas fa-robot mr-2"></i>AI玩家发言中...
+                    </h3>
+                    <div id="ai-speech-progress" class="space-y-4">
+                        <!-- AI发言状态会动态更新 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 第4部分：投票阶段 -->
+            <section id="vote-section" class="game-section hidden-section bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
+                        <i class="fas fa-vote-yea mr-2"></i>
+                        <span id="vote-round-title">第 <span id="vote-round-number">1</span> 轮 · 投票阶段</span>
+                    </h2>
+                    <div class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300 px-4 py-2 rounded-lg font-semibold">
+                        淘汰一名玩家
+                    </div>
+                </div>
+                
+                <!-- 发言回顾 -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                        <i class="fas fa-history mr-2"></i>本轮发言回顾
+                    </h3>
+                    <div id="speech-review" class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 max-h-60 overflow-y-auto">
+                        <!-- 发言回顾会动态添加 -->
+                    </div>
+                </div>
+                
+                <!-- 投票区域 -->
+                <div id="player-vote-area" class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl p-5 mb-6">
+                    <h3 class="text-lg font-semibold text-red-800 dark:text-red-300 mb-3">
+                        <i class="fas fa-user-check mr-2"></i>轮到你的投票
+                    </h3>
+                    <div class="mb-4">
+                        <p class="text-gray-700 dark:text-gray-300 mb-2">
+                            你的角色: <span id="player-vote-role" class="font-bold"></span> | 
+                            你的词语: <span id="player-vote-word" class="font-bold text-blue-700 dark:text-blue-300"></span>
+                        </p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            <i class="fas fa-info-circle mr-1"></i> 请投票给你认为最可能是卧底的玩家
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-3">当前存活的其他玩家：</h4>
+                        <div id="vote-candidates" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- 投票候选人按钮会动态添加 -->
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="vote-reason" class="block text-gray-700 dark:text-gray-300 mb-2">投票理由（可选）：</label>
+                        <textarea id="vote-reason" rows="2" 
+                                  class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white"
+                                  placeholder="例如：发言前后矛盾，描述模糊..."></textarea>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button id="submit-vote-btn" 
+                                class="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-lg transition duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled>
+                            <i class="fas fa-check-circle mr-2"></i>提交投票
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- AI投票状态 -->
+                <div id="ai-vote-status" class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+                    <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                        <i class="fas fa-robot mr-2"></i>AI玩家投票中...
+                    </h3>
+                    <div id="ai-vote-progress" class="space-y-4">
+                        <!-- AI投票状态会动态更新 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 第5部分：裁决阶段 -->
+            <section id="judge-section" class="game-section hidden-section bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6 text-center">
+                    <i class="fas fa-gavel mr-2"></i>投票结果与裁决
+                </h2>
+                
+                <!-- 得票统计 -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 text-center">
+                        <i class="fas fa-chart-bar mr-2"></i>得票统计
+                    </h3>
+                    <div id="vote-results" class="space-y-4 max-w-2xl mx-auto">
+                        <!-- 得票统计会动态添加 -->
+                    </div>
+                </div>
+                
+                <!-- 淘汰结果 -->
+                <div id="elimination-result" class="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/30 dark:to-orange-900/30 border border-red-200 dark:border-red-800 rounded-xl p-6 mb-8 text-center">
+                    <div id="elimination-content">
+                        <!-- 淘汰结果会动态添加 -->
+                    </div>
+                </div>
+                
+                <!-- 游戏状态 -->
+                <div id="game-status-update" class="mb-8">
+                    <!-- 游戏状态更新会动态添加 -->
+                </div>
+                
+                <!-- 下一步按钮 -->
+                <div class="text-center">
+                    <button id="next-round-btn" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition duration-200 text-lg flex items-center justify-center mx-auto">
+                        <i class="fas fa-arrow-right mr-2"></i>继续下一轮
+                    </button>
+                    <button id="final-result-btn" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-8 py-3 rounded-lg transition duration-200 text-lg flex items-center justify-center mx-auto hidden">
+                        <i class="fas fa-flag-checkered mr-2"></i>查看最终结果
+                    </button>
+                </div>
+            </section>
+
+            <!-- 第6部分：游戏结束 -->
+            <section id="final-section" class="game-section hidden-section bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6 border-2 border-purple-300 dark:border-purple-700">
+                <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-6 text-center">
+                    <i class="fas fa-flag-checkered mr-2"></i>游戏结束 · 最终揭秘
+                </h2>
+                
+                <!-- 角色揭秘 -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                        <i class="fas fa-user-secret mr-2"></i>角色揭秘
+                    </h3>
+                    <div id="role-reveal" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <!-- 角色揭秘会动态添加 -->
+                    </div>
+                </div>
+                
+                <!-- 词语对照 -->
+                <div class="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 text-center">
+                        <i class="fas fa-tags mr-2"></i>词语对照
+                    </h3>
+                    <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-12">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">👤</div>
+                            <h4 class="text-lg font-bold text-green-600 dark:text-green-400 mb-1">平民词</h4>
+                            <p id="civilian-word-final" class="text-2xl font-bold text-gray-800 dark:text-white"></p>
+                        </div>
+                        <div class="text-3xl text-gray-400">VS</div>
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🕵️</div>
+                            <h4 class="text-lg font-bold text-red-600 dark:text-red-400 mb-1">卧底词</h4>
+                            <p id="undercover-word-final" class="text-2xl font-bold text-gray-800 dark:text-white"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 最终结果 -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 text-center">
+                        <i class="fas fa-trophy mr-2"></i>最终结果
+                    </h3>
+                    <div id="final-winner" class="text-center text-2xl font-bold mb-4">
+                        <!-- 胜利方会动态添加 -->
+                    </div>
+                    <div id="player-performance" class="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/30 dark:to-blue-900/30 border border-green-200 dark:border-green-800 rounded-xl p-6 text-center">
+                        <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-user mr-2"></i>你的战绩
+                        </h4>
+                        <p id="player-result" class="text-xl"></p>
+                    </div>
+                </div>
+                
+                <!-- 游戏统计 -->
+                <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 text-center">
+                        <i class="fas fa-chart-line mr-2"></i>游戏统计
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">总轮数</p>
+                            <p id="total-rounds" class="text-2xl font-bold text-blue-600 dark:text-blue-400"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">淘汰顺序</p>
+                            <p id="elimination-order" class="text-lg font-semibold text-gray-700 dark:text-gray-300"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">游戏时长</p>
+                            <p id="game-duration" class="text-lg font-semibold text-gray-700 dark:text-gray-300">约 3 分钟</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 重新开始 -->
+                <div class="text-center mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <button id="restart-game-btn" 
+                            class="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-3 rounded-lg transition duration-200 text-lg flex items-center justify-center mx-auto">
+                        <i class="fas fa-redo mr-2"></i>再玩一局
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- 游戏状态栏 -->
+        <footer class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex flex-wrap justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <p class="text-gray-600 dark:text-gray-400">
+                        <i class="fas fa-code mr-2"></i>纯前端实现 · 离线可玩
+                    </p>
+                    <p class="text-sm text-gray-500 dark:text-gray-500">
+                        版本 1.0 · 基于 Python 终端版「谁是卧底」转换
+                    </p>
+                </div>
+                <div class="flex space-x-4">
+                    <button id="toggle-dark-mode" 
+                            class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 font-medium px-4 py-2 rounded-lg transition duration-200 flex items-center">
+                        <i class="fas fa-moon mr-2"></i>暗色模式
+                    </button>
+                    <button id="show-help" 
+                            class="bg-blue-100 hover:bg-blue-200 dark:bg-blue-800 dark:hover:bg-blue-700 text-blue-800 dark:text-blue-300 font-medium px-4 py-2 rounded-lg transition duration-200 flex items-center">
+                        <i class="fas fa-question-circle mr-2"></i>游戏帮助
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 游戏帮助模态框 -->
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white">
+                        <i class="fas fa-question-circle mr-2"></i>游戏帮助
+                    </h3>
+                    <button id="close-help-modal" 
+                            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 text-2xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">游戏目标</h4>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            玩家需要根据其他人的发言判断谁是卧底（平民）或隐藏自己的身份（卧底）。每轮发言后投票淘汰一人，直到一方获胜。
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">角色说明</h4>
+                        <ul class="space-y-2 text-gray-600 dark:text-gray-400">
+                            <li class="flex items-start">
+                                <div class="w-3 h-3 rounded-full bg-green-500 mt-1 mr-2"></div>
+                                <span><strong>平民</strong>：拿到相同词语，目标是找出并淘汰卧底</span>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="w-3 h-3 rounded-full bg-red-500 mt-1 mr-2"></div>
+                                <span><strong>卧底</strong>：拿到不同词语，目标是隐藏身份不被淘汰</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">胜利条件</h4>
+                        <ul class="space-y-2 text-gray-600 dark:text-gray-400">
+                            <li><strong>平民胜利</strong>：所有卧底被淘汰</li>
+                            <li><strong>卧底胜利</strong>：卧底人数 ≥ 剩余平民人数</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">发言技巧</h4>
+                        <ul class="space-y-2 text-gray-600 dark:text-gray-400">
+                            <li>描述词语特征，但不要直接说出词语</li>
+                            <li>平民：提供准确但不过于明显的描述，帮助其他平民识别</li>
+                            <li>卧底：模仿平民的描述风格，模糊核心差异</li>
+                            <li>注意听其他人的发言，寻找矛盾或异常点</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">AI玩家行为</h4>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            本游戏中的AI玩家使用预设模板和简单策略进行发言和投票，完全离线运行，无需网络连接。
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
+                    <button id="close-help-btn" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition duration-200">
+                        我明白了，开始游戏！
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 代码 -->
+    <script>
+        // ================== 游戏核心数据 ==================
+        const GameState = {
+            // 词语对列表（平民词，卧底词）
+            wordPairs: [
+                ["奶茶", "果汁"],
+                ["牙刷", "牙膏"],
+                ["米饭", "面条"],
+                ["手机", "平板"],
+                ["篮球", "足球"],
+                ["咖啡", "红茶"],
+                ["雨伞", "遮阳伞"],
+                ["地铁", "公交车"],
+                ["冰箱", "空调"],
+                ["笔记本", "平板电脑"],
+                ["电影院", "剧场"],
+                ["火锅", "烧烤"],
+                ["游泳池", "海滩"],
+                ["自行车", "电动车"],
+                ["眼镜", "隐形眼镜"]
+            ],
+            
+            // AI玩家名字
+            aiPlayers: ["小明", "小红", "小刚", "老王"],
+            
+            // AI发言模板（平民和卧底）
+            speechTemplates: {
+                civilian: [
+                    "这是一种{category}，{feature1}，{feature2}，{feature3}。",
+                    "我想到的{category}，通常{feature1}，而且{feature2}，{feature3}。",
+                    "这个{category}在生活中很常见，{feature1}，{feature2}，{feature3}。",
+                    "我拿到的词是{category}类的，{feature1}，{feature2}，{feature3}。"
+                ],
+                undercover: [
+                    "我觉得这个{category}，{feature1}，{feature2}，{feature3}。",
+                    "这个{category}的话，{feature1}，{feature2}，{feature3}吧。",
+                    "我拿到的词应该是一种{category}，{feature1}，{feature2}，{feature3}。",
+                    "这个{category}嘛，{feature1}，{feature2}，{feature3}。"
+                ]
+            },
+            
+            // 词语特征库
+            wordFeatures: {
+                // 根据词语类型提供特征描述
+                "奶茶": ["日常饮用的饮品", "有多种口味可选", "不同品牌的口感差异不大", "平时在家或外出都经常能喝到"],
+                "果汁": ["由水果制成的饮品", "通常比较甜", "富含维生素", "适合早餐或下午茶"],
+                "牙刷": ["用于清洁牙齿的工具", "通常早上和晚上使用", "需要定期更换", "有不同的刷头硬度"],
+                "牙膏": ["配合牙刷使用的清洁剂", "有不同的味道", "主要功能是清洁牙齿", "通常含有氟化物"],
+                "米饭": ["主食之一", "由大米煮熟而成", "亚洲人的主要食物", "可以搭配各种菜肴"],
+                "面条": ["面食的一种", "有各种不同的形状", "可以煮汤或干拌", "是快餐的常见选择"],
+                "手机": ["通讯工具", "可以打电话发短信", "有各种智能功能", "现代人几乎人手一部"],
+                "平板": ["电子设备", "屏幕比手机大", "适合看视频和阅读", "可以触摸操作"],
+                "篮球": ["球类运动", "需要投进篮筐", "通常五人一队", "有NBA等职业联赛"],
+                "足球": ["用脚踢的球类运动", "进球得分", "世界杯是最著名的赛事", "需要团队配合"],
+                "咖啡": ["提神饮品", "有苦味", "可以加糖和奶", "早上常喝"],
+                "红茶": ["茶叶饮品", "颜色较深", "可以热饮或冷饮", "适合下午茶"],
+                "雨伞": ["防雨工具", "可以折叠", "有各种颜色和图案", "雨天必备"],
+                "遮阳伞": ["防晒工具", "通常有防紫外线功能", "女性使用较多", "夏天常用"],
+                "地铁": ["公共交通", "在地下运行", "准时快速", "大城市常见"],
+                "公交车": ["公共交通", "在地面运行", "有固定线路", "票价便宜"]
+            },
+            
+            // 游戏状态
+            current: {
+                civilianWord: "",
+                undercoverWord: "",
+                roleAssignment: {}, // {玩家名: ["角色", "词语"]}
+                speeches: {}, // 当前轮发言
+                historySpeeches: [], // 历史发言
+                votes: {}, // 当前轮投票
+                gameStatus: "running", // running / end
+                winner: "", // civilian / undercover
+                eliminated: [], // 被淘汰的玩家
+                round: 1,
+                playerName: "",
+                playerRole: "",
+                playerWord: "",
+                playerEliminated: false,
+                allPlayers: [], // 所有玩家列表
+                voteReasoning: {}, // 投票理由
+                speechReasoning: {} // 发言理由（AI）
+            },
+            
+            // 游戏计时器
+            startTime: null,
+            endTime: null
+        };
+
+        // ================== 工具函数 ==================
+        function getRandomElement(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ================== 游戏核心逻辑 ==================
+        
+        // 1. 生成词语
+        function generateWords() {
+            const pair = getRandomElement(GameState.wordPairs);
+            GameState.current.civilianWord = pair[0];
+            GameState.current.undercoverWord = pair[1];
+            console.log(`生成的词语：平民词="${pair[0]}"，卧底词="${pair[1]}"`);
+        }
+
+        // 2. 分配角色
+        function assignRoles(playerName) {
+            GameState.current.playerName = playerName;
+            GameState.current.allPlayers = [playerName, ...GameState.aiPlayers];
+            
+            // 随机选择卧底
+            const undercover = getRandomElement(GameState.current.allPlayers);
+            
+            // 分配角色和词语
+            GameState.current.allPlayers.forEach(player => {
+                if (player === undercover) {
+                    GameState.current.roleAssignment[player] = ["卧底", GameState.current.undercoverWord];
+                } else {
+                    GameState.current.roleAssignment[player] = ["平民", GameState.current.civilianWord];
+                }
+            });
+            
+            // 记录玩家自身信息
+            GameState.current.playerRole = GameState.current.roleAssignment[playerName][0];
+            GameState.current.playerWord = GameState.current.roleAssignment[playerName][1];
+            
+            return GameState.current.playerRole;
+        }
+
+        // 3. 生成AI发言 - 基于Python版本的更自然、多样化发言
+        function generateAISpeech(player, role, word) {
+            // 扩展词语特征库（更丰富的特征描述，模仿LLM生成的自然语言）
+            const extendedWordFeatures = {
+                "奶茶": ["我喜欢它的甜度和奶香味", "不同口味满足不同喜好", "夏天喝冰的冬天喝热的", "珍珠嚼起来很有口感", "年轻人聚会常点的饮品", "街边奶茶店随处可见"],
+                "果汁": ["新鲜水果榨出来的很健康", "早餐搭配面包很合适", "维生素丰富对身体好", "各种水果味道可以选择", "夏天冰镇果汁很解渴", "小朋友特别喜欢喝"],
+                "牙刷": ["每天早晚都要用它", "软毛的用起来舒服些", "三个月就得换一次", "电动的手动各有好处", "清洁牙齿保护口腔", "出差也要记得带上"],
+                "牙膏": ["薄荷味的刷完很清爽", "含氟的能预防蛀牙", "白色膏体挤在牙刷上", "不同牌子效果不太一样", "刷牙时泡沫很丰富", "保持口气清新一整天"],
+                "米饭": ["每顿饭都离不开它", "配上炒菜特别下饭", "刚煮好的闻着很香", "东北大米口感不错", "剩饭可以做蛋炒饭", "主食里最常吃的一种"],
+                "面条": ["煮起来很快很方便", "汤面拌面都很好吃", "粗细宽扁各种形状", "饿了的时候来一碗", "不同地方做法不同", "早餐吃面也挺常见"],
+                "手机": ["现在人人都离不开", "可以拍照录像打电话", "各种APP功能很多", "每天刷好几次屏幕", "电池续航很重要", "智能手机改变生活"],
+                "平板": ["屏幕大看视频舒服", "比笔记本轻便一些", "触摸屏操作很方便", "适合追剧和看电子书", "玩游戏视野更开阔", "办公学习都能用"],
+                "篮球": ["需要团队配合的运动", "投篮进筐很有成就感", "NBA比赛经常看", "室内室外都能打", "运球传球需要技巧", "比赛时很考验体力"],
+                "足球": ["世界杯最让人激动", "用脚踢球控制方向", "团队协作特别重要", "进球得分那一刻很兴奋", "场地大跑动范围广", "世界第一运动没错"],
+                "咖啡": ["早上提神必须来一杯", "美式拿铁各种做法", "有点苦但很香醇", "上班族的日常饮品", "咖啡厅里经常点", "熬夜时少不了它"],
+                "红茶": ["英式下午茶的经典", "颜色红亮很好看", "可以加牛奶或柠檬", "口感温和不刺激", "热饮冷饮都合适", "茶香味很浓郁"],
+                "雨伞": ["下雨天出门必备", "折叠起来方便携带", "自动开关的很方便", "各种花色可以选择", "有时候风大容易翻", "雨天街头全是它"],
+                "遮阳伞": ["夏天防晒很重要", "女生用的比较多", "轻便小巧好拿", "防紫外线效果好", "花色款式很漂亮", "太阳大时保护皮肤"],
+                "地铁": ["上班通勤很准时", "地下运行不堵车", "线路多覆盖广", "高峰期特别拥挤", "刷卡进出很方便", "大城市主要交通"],
+                "公交车": ["票价便宜很实惠", "站点多覆盖面广", "等待时间不太确定", "环保出行方式之一", "有固定路线和班次", "老人学生常乘坐"],
+                "冰箱": ["保鲜食物延长保存", "冷藏冷冻功能都有", "白色立式厨房常见", "夏天冻饮料很好用", "需要定期清理", "现代家庭必备"],
+                "空调": ["夏天制冷冬天制热", "挂在墙上不占地方", "遥控器调节温度", "炎热天气里救星", "用电量比较大", "办公室家里都用"],
+                "笔记本": ["学生上课记笔记", "各种封面设计漂亮", "纸张质量有差别", "随身携带很方便", "写日记做计划都用", "文具店里最常见"],
+                "平板电脑": ["比手机屏幕大很多", "触摸屏操作直观", "追剧玩游戏很爽", "轻薄便携随身带", "办公软件都能用", "现代电子产品"],
+                "电影院": ["大屏幕视听效果好", "爆米花可乐标配", "周末约会好去处", "不同影厅不同电影", "音响效果震撼", "沉浸式观影体验"],
+                "剧场": ["现场表演感染力强", "舞台布景很精美", "话剧歌剧音乐会", "座位有分区价格", "文化气息浓厚", "演出时不能拍照"],
+                "火锅": ["冬天吃特别暖和", "大家围在一起热闹", "各种食材都能涮", "辣的不辣的锅底", "边煮边吃很自在", "聚会首选餐饮"],
+                "烧烤": ["户外聚餐常选择", "自己烤乐趣很多", "各种肉类蔬菜", "炭火烤的更香", "啤酒搭配很完美", "夜晚宵夜热门"],
+                "游泳池": ["夏天消暑好地方", "分深水区浅水区", "游泳锻炼身体", "有救生员看护", "室内外都有", "周末家庭活动"],
+                "海滩": ["沙滩海浪风景美", "度假旅游首选地", "可以游泳晒太阳", "捡贝壳堆沙堡", "海风吹着很舒服", "夏天旅游热门"],
+                "自行车": ["环保出行方式", "锻炼身体好工具", "不需要加油", "共享单车方便", "骑行看风景", "需要保持平衡"],
+                "电动车": ["充电就能用", "比自行车省力", "城市通勤常见", "速度比较快", "需要戴头盔", "遵守交通规则"],
+                "眼镜": ["矫正视力工具", "镜框样式多样", "近视远视都用", "每天都要戴", "有时候起雾", "小心别摔坏"],
+                "隐形眼镜": ["直接戴眼球上", "美观方便很多", "需要护理液", "日抛月抛选择", "特殊场合用", "注意卫生"]
+            };
+            
+            // 获取词语特征
+            let features = extendedWordFeatures[word];
+            if (!features) {
+                // 如果词语不在特征库中，生成更自然的通用特征
+                features = [
+                    `这个东西大家应该都用过`,
+                    `日常生活中挺常见的`,
+                    `功能用途比较明确`,
+                    `不同人有不同感受`,
+                    `说不上特别但也不陌生`,
+                    `特点还挺明显的`
+                ];
+            }
+            
+            // 随机选择1-3个特征（更自然，不像刻意拼凑）
+            const numFeatures = 1 + Math.floor(Math.random() * 3); // 1-3个特征
+            const selectedFeatures = shuffleArray(features).slice(0, numFeatures);
+            
+            // 根据Python版本逻辑，平民和卧底有不同的发言策略
+            const isUndercover = role === "卧底";
+            
+            // 平民发言策略：自然、口语化、20-50字、选取独特角度
+            // 卧底发言策略：模仿平民风格、模糊处理、避免太准确或太模糊
+            
+            // 更自然的发言模板（模仿真人聊天）
+            const naturalTemplates = {
+                civilian: [
+                    `我觉得这个{feature1}，{feature2}。`,
+                    `{feature1}，{feature2}，大概是这样。`,
+                    `我想到的是{feature1}，{feature2}也不错。`,
+                    `这个嘛，{feature1}，{feature2}。`,
+                    `嗯...{feature1}，{feature2}吧。`,
+                    `我的感受是{feature1}，{feature2}。`,
+                    `{feature1}，另外{feature2}也挺重要。`,
+                    `我第一个想到{feature1}，还有{feature2}。`,
+                    `对于这个，{feature1}，{feature2}比较明显。`,
+                    `我觉得{feature1}挺关键，{feature2}也差不多。`
+                ],
+                undercover: [
+                    `{feature1}，{feature2}。`,
+                    `我觉得{feature1}，{feature2}吧。`,
+                    `嗯...{feature1}，{feature2}差不多。`,
+                    `这个{feature1}，{feature2}这样。`,
+                    `我想想，{feature1}，{feature2}。`,
+                    `{feature1}，{feature2}，我的看法。`,
+                    `可能是{feature1}，{feature2}这样。`,
+                    `我觉得{feature1}，{feature2}还可以。`,
+                    `{feature1}，{feature2}，说不太清。`,
+                    `大概是{feature1}，{feature2}。`
+                ]
+            };
+            
+            // 选择模板
+            const templates = naturalTemplates[isUndercover ? "undercover" : "civilian"];
+            let template = getRandomElement(templates);
+            
+            // 如果有3个特征，选择包含3个特征的模板
+            if (selectedFeatures.length === 3 && Math.random() > 0.5) {
+                const threeFeatureTemplates = [
+                    `{feature1}，{feature2}，还有{feature3}。`,
+                    `{feature1}挺明显，{feature2}和{feature3}也有关系。`,
+                    `我觉得{feature1}，{feature2}，另外{feature3}。`
+                ];
+                if (isUndercover) {
+                    threeFeatureTemplates.push(`{feature1}，{feature2}，{feature3}差不多。`);
+                }
+                template = getRandomElement(threeFeatureTemplates);
+            }
+            
+            // 生成发言
+            let speech = template;
+            
+            // 替换特征占位符
+            if (selectedFeatures[0]) speech = speech.replace(/\{feature1\}/g, selectedFeatures[0]);
+            if (selectedFeatures[1]) speech = speech.replace(/\{feature2\}/g, selectedFeatures[1]);
+            if (selectedFeatures[2]) speech = speech.replace(/\{feature3\}/g, selectedFeatures[2]);
+            
+            // 随机添加语气词（更自然）
+            if (Math.random() > 0.6) {
+                const prefixes = ["呃", "嗯", "那个", "其实", "说实话", "我觉得吧"];
+                if (!speech.startsWith("呃") && !speech.startsWith("嗯") && !speech.startsWith("那个")) {
+                    speech = getRandomElement(prefixes) + "，" + speech;
+                }
+            }
+            
+            // 随机添加结尾语气词
+            if (Math.random() > 0.7) {
+                const suffixes = ["", "。", "，就这些。", "，差不多。", "，大概这样。", "，个人感觉。"];
+                const suffix = getRandomElement(suffixes);
+                if (suffix && !speech.endsWith(suffix)) {
+                    speech = speech.replace(/。$/, "") + suffix;
+                }
+            }
+            
+            // 确保发言长度在20-50字之间（像Python版本要求）
+            const speechLength = speech.replace(/[^\u4e00-\u9fa5]/g, "").length;
+            if (speechLength < 10) {
+                // 太短了，添加一些内容
+                const additions = ["具体来说", "详细点讲", "展开说一下", "补充一点"];
+                speech = getRandomElement(additions) + "，" + speech;
+            } else if (speechLength > 50) {
+                // 太长了，简化
+                speech = speech.substring(0, 40) + "...";
+            }
+            
+            // 根据AI玩家个性调整发言风格（模仿Python版本中不同AI的个性）
+            const playerPersonalities = {
+                "小明": { // 简洁明了
+                    adjust: (s) => s.length > 30 ? s.replace(/，[^，]+$/g, "").replace(/，[^，]+$/g, "") : s,
+                    prefix: ["直接说", "简单讲", "我的看法"]
+                },
+                "小红": { // 细致感性
+                    adjust: (s) => selectedFeatures[2] ? s + "，另外我还想到" + selectedFeatures[2] : s,
+                    prefix: ["我感觉", "我觉得", "我的感受是"]
+                },
+                "小刚": { // 幽默轻松
+                    adjust: (s) => s.replace("。", "，哈哈。").replace("大概", "大概吧"),
+                    prefix: ["开玩笑说", "轻松点讲", "幽默一下"]
+                },
+                "老王": { // 沉稳经验丰富
+                    adjust: (s) => "根据经验，" + s,
+                    prefix: ["经验来看", "长期观察", "我认为"]
+                }
+            };
+            
+            if (playerPersonalities[player]) {
+                const personality = playerPersonalities[player];
+                if (Math.random() > 0.5) {
+                    speech = personality.adjust(speech);
+                }
+                if (Math.random() > 0.7 && !speech.startsWith("根据经验")) {
+                    speech = getRandomElement(personality.prefix) + "，" + speech;
+                }
+            }
+            
+            // 生成更自然的理由（模仿Python版本的思考过程）
+            const reasons = {
+                civilian: [
+                    `作为平民，我尝试从${selectedFeatures.length}个角度自然描述，避免模板化`,
+                    `我选了${selectedFeatures.slice(0, 2).join("和")}这些生活化特征，希望能帮助队友`,
+                    `观察大家发言，我的描述应该既准确又不直接暴露词语`,
+                    `平衡了信息量和隐蔽性，选取了日常体验角度`,
+                    `参考了常见描述方式，但加入了个人感受避免重复`,
+                    `从使用体验出发，提供具体而非泛泛的描述`
+                ],
+                undercover: [
+                    `卧底需要模仿平民，我用了${selectedFeatures[0]}等模糊描述`,
+                    `避免描述太准确，选了${selectedFeatures.length}个常见特征混过去`,
+                    `观察平民可能怎么说，调整我的发言风格`,
+                    `用合理的日常描述，不引起怀疑也不暴露差异`,
+                    `语气尽量自然，${selectedFeatures.slice(0, 2).join("和")}都是常见说法`,
+                    `模仿普通玩家的发言方式，避免AI腔`
+                ]
+            };
+            
+            const reason = getRandomElement(reasons[isUndercover ? "undercover" : "civilian"]);
+            
+            // 添加发言历史感知（避免重复）
+            const currentRoundSpeeches = Object.values(GameState.current.speeches);
+            if (currentRoundSpeeches.length > 0) {
+                // 检查是否有类似发言
+                for (const existingSpeech of currentRoundSpeeches) {
+                    let similarity = 0;
+                    for (const feature of selectedFeatures) {
+                        if (existingSpeech.includes(feature.substring(0, 4))) similarity++;
+                    }
+                    if (similarity > 1 && Math.random() > 0.5) {
+                        // 有类似特征，换个说法
+                        const adjustments = [
+                            "换个角度说，",
+                            "我的理解有点不同，",
+                            "补充一下，",
+                            "再想想，"
+                        ];
+                        speech = getRandomElement(adjustments) + speech;
+                        break;
+                    }
+                }
+            }
+            
+            return { speech, reason };
+        }
+
+        // 4. AI投票逻辑 - 更智能、基于发言分析
+        function generateAIVote(player, role, word) {
+            const activePlayers = GameState.current.allPlayers.filter(p => 
+                !GameState.current.eliminated.includes(p)
+            );
+            
+            const candidates = activePlayers.filter(p => p !== player);
+            if (candidates.length === 0) return null;
+            
+            let vote;
+            let reason;
+            
+            // 获取当前轮发言
+            const currentSpeeches = GameState.current.speeches;
+            
+            if (role === "卧底") {
+                // 卧底策略：优先投给发言最像平民的（保护卧底同伴）或投给威胁最大的平民
+                
+                // 分析候选人发言
+                const candidateAnalysis = candidates.map(candidate => {
+                    const candidateRole = GameState.current.roleAssignment[candidate][0];
+                    const candidateSpeech = currentSpeeches[candidate] || "";
+                    
+                    // 评分：发言像平民的程度（越高越像平民）
+                    let score = 0;
+                    
+                    // 根据发言长度和内容评分
+                    if (candidateSpeech) {
+                        // 发言长度适中的加分（10-30字）
+                        const speechLength = candidateSpeech.replace(/\s/g, '').length;
+                        if (speechLength >= 10 && speechLength <= 30) score += 2;
+                        
+                        // 发言包含具体特征的加分
+                        const hasFeatures = candidateSpeech.includes("特征") || candidateSpeech.includes("特点") || 
+                                           candidateSpeech.includes("功能") || candidateSpeech.includes("用途");
+                        if (hasFeatures) score += 1;
+                        
+                        // 发言自然的加分（包含常见语气词）
+                        const isNatural = candidateSpeech.includes("我觉得") || candidateSpeech.includes("我认为") || 
+                                         candidateSpeech.includes("大概") || candidateSpeech.includes("可能");
+                        if (isNatural) score += 1;
+                        
+                        // 如果候选人是平民，但发言模糊，可能是卧底在假装，需要分析
+                        if (candidateRole === "平民" && candidateSpeech.length < 15) {
+                            score -= 1; // 平民发言太短，可疑
+                        }
+                    }
+                    
+                    // 随机因素
+                    score += Math.random() * 2;
+                    
+                    return { candidate, score, role: candidateRole };
+                });
+                
+                // 按评分排序，卧底倾向于投给评分高的（像平民的）
+                candidateAnalysis.sort((a, b) => b.score - a.score);
+                
+                // 卧底策略：有70%概率投给最像平民的，30%概率随机
+                if (Math.random() < 0.7 && candidateAnalysis.length > 0) {
+                    vote = candidateAnalysis[0].candidate;
+                    reason = `根据发言分析，${vote}的发言比较自然合理，不像是卧底`;
+                } else {
+                    vote = getRandomElement(candidates);
+                    reason = "随机选择一名玩家投票";
+                }
+                
+            } else {
+                // 平民策略：分析发言，找出发言可疑的玩家
+                
+                // 分析候选人发言可疑度
+                const suspiciousAnalysis = candidates.map(candidate => {
+                    const candidateRole = GameState.current.roleAssignment[candidate][0];
+                    const candidateSpeech = currentSpeeches[candidate] || "";
+                    
+                    // 可疑度评分（越高越可疑）
+                    let suspicion = 0;
+                    
+                    if (candidateSpeech) {
+                        // 发言过短的加分（可能卧底在隐藏）
+                        const speechLength = candidateSpeech.replace(/\s/g, '').length;
+                        if (speechLength < 12) suspicion += 3;
+                        if (speechLength < 8) suspicion += 2;
+                        
+                        // 发言过于模糊的加分
+                        const vagueWords = ["大概", "可能", "好像", "似乎", "应该", "吧", "呢"];
+                        const vagueCount = vagueWords.filter(word => candidateSpeech.includes(word)).length;
+                        suspicion += vagueCount;
+                        
+                        // 重复之前发言内容的扣分（可能是在模仿）
+                        const currentSpeechesArray = Object.values(currentSpeeches);
+                        const previousSpeeches = currentSpeechesArray.slice(0, currentSpeechesArray.indexOf(candidateSpeech));
+                        previousSpeeches.forEach(prevSpeech => {
+                            // 检查是否有相同或相似的描述
+                            const commonWords = candidateSpeech.split(/[，。！？、\s]/).filter(word => 
+                                prevSpeech.includes(word) && word.length > 1
+                            );
+                            if (commonWords.length > 2) {
+                                suspicion += 1; // 重复描述过多，可疑
+                            }
+                        });
+                        
+                        // 缺乏具体特征的加分
+                        const hasNoSpecifics = !candidateSpeech.includes("可以") && 
+                                               !candidateSpeech.includes("用于") && 
+                                               !candidateSpeech.includes("功能") &&
+                                               !candidateSpeech.includes("特点");
+                        if (hasNoSpecifics && speechLength > 10) suspicion += 2;
+                    } else {
+                        // 没有发言（理论上有，但保险）
+                        suspicion += 5;
+                    }
+                    
+                    // 随机因素
+                    suspicion += Math.random() * 2;
+                    
+                    // 如果候选人是卧底，增加基础可疑度
+                    if (candidateRole === "卧底") suspicion += 3;
+                    
+                    return { candidate, suspicion };
+                });
+                
+                // 按可疑度排序
+                suspiciousAnalysis.sort((a, b) => b.suspicion - a.suspicion);
+                
+                // 平民策略：有80%概率投给最可疑的，20%概率随机
+                if (Math.random() < 0.8 && suspiciousAnalysis.length > 0) {
+                    vote = suspiciousAnalysis[0].candidate;
+                    const topSuspicion = suspiciousAnalysis[0].suspicion;
+                    const reasons = [
+                        `根据发言分析，${vote}的发言较为模糊可疑`,
+                        `${vote}的描述不够具体，可能是卧底`,
+                        `${vote}的发言与其他玩家有差异，值得怀疑`,
+                        `我觉得${vote}的发言风格不太自然`
+                    ];
+                    reason = getRandomElement(reasons);
+                } else {
+                    vote = getRandomElement(candidates);
+                    reason = "随机选择一名玩家投票";
+                }
+            }
+            
+            // 如果投票对象无效，选择第一个候选人
+            if (!vote || !candidates.includes(vote)) {
+                vote = candidates[0];
+                reason = "投票目标无效，重新选择";
+            }
+            
+            // 添加个性化投票理由
+            const playerStyles = {
+                "小明": "理性分析后",
+                "小红": "仔细思考后",
+                "小刚": "综合判断后",
+                "老王": "根据经验"
+            };
+            
+            if (playerStyles[player]) {
+                reason = `${playerStyles[player]}，${reason}`;
+            }
+            
+            return { vote, reason };
+        }
+
+        // 5. 处理投票结果
+        function processVotes() {
+            const voteCount = {};
+            Object.values(GameState.current.votes).forEach(vote => {
+                voteCount[vote] = (voteCount[vote] || 0) + 1;
+            });
+            
+            // 找到得票最多的玩家
+            let maxVotes = 0;
+            let eliminatedCandidates = [];
+            
+            Object.entries(voteCount).forEach(([player, count]) => {
+                if (count > maxVotes) {
+                    maxVotes = count;
+                    eliminatedCandidates = [player];
+                } else if (count === maxVotes) {
+                    eliminatedCandidates.push(player);
+                }
+            });
+            
+            // 平票时随机淘汰一个
+            const eliminated = getRandomElement(eliminatedCandidates);
+            GameState.current.eliminated.push(eliminated);
+            
+            // 检查玩家是否被淘汰
+            if (eliminated === GameState.current.playerName) {
+                GameState.current.playerEliminated = true;
+            }
+            
+            return { eliminated, voteCount, role: GameState.current.roleAssignment[eliminated][0] };
+        }
+
+        // 6. 检查游戏是否结束
+        function checkGameEnd() {
+            const activePlayers = GameState.current.allPlayers.filter(p => 
+                !GameState.current.eliminated.includes(p)
+            );
+            
+            const civilianCount = activePlayers.filter(p => 
+                GameState.current.roleAssignment[p][0] === "平民"
+            ).length;
+            
+            const undercoverCount = activePlayers.filter(p => 
+                GameState.current.roleAssignment[p][0] === "卧底"
+            ).length;
+            
+            // 如果卧底被淘汰，平民胜利
+            if (undercoverCount === 0) {
+                GameState.current.gameStatus = "end";
+                GameState.current.winner = "civilian";
+                return true;
+            }
+            
+            // 如果卧底人数 ≥ 平民人数，卧底胜利
+            if (undercoverCount >= civilianCount) {
+                GameState.current.gameStatus = "end";
+                GameState.current.winner = "undercover";
+                return true;
+            }
+            
+            return false;
+        }
+
+        // ================== UI 更新函数 ==================
+        
+        // 显示/隐藏游戏部分
+        function showSection(sectionId) {
+            document.querySelectorAll('.game-section').forEach(section => {
+                section.classList.remove('visible-section');
+                section.classList.add('hidden-section');
+            });
+            
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.classList.remove('hidden-section');
+                section.classList.add('visible-section');
+                section.classList.add('fade-in');
+                
+                // 滚动到该部分
+                setTimeout(() => {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        }
+
+        // 更新玩家列表显示
+        function updatePlayerList() {
+            const container = document.getElementById('player-list');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            GameState.current.allPlayers.forEach(player => {
+                const role = GameState.current.roleAssignment[player][0];
+                const isPlayer = player === GameState.current.playerName;
+                const isEliminated = GameState.current.eliminated.includes(player);
+                
+                const playerCard = document.createElement('div');
+                playerCard.className = `bg-gray-100 dark:bg-gray-700 rounded-lg p-3 text-center ${isEliminated ? 'opacity-60' : ''}`;
+                
+                let icon = '🤖'; // AI默认
+                if (isPlayer) icon = '👤';
+                // 注意：不显示其他玩家的角色图标，玩家只能看到自己的角色
+                
+                let roleDisplay = '';
+                if (isPlayer) {
+                    // 玩家自己能看到自己的角色
+                    roleDisplay = `<div class="text-sm ${role === '卧底' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}">${role}</div>`;
+                } else {
+                    // 其他玩家不显示角色，只显示问号或隐藏
+                    roleDisplay = '<div class="text-sm text-gray-500 dark:text-gray-400">身份未知</div>';
+                }
+                
+                playerCard.innerHTML = `
+                    <div class="text-2xl mb-1">${icon}</div>
+                    <div class="font-semibold ${isPlayer ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}">${player}</div>
+                    ${roleDisplay}
+                    ${isPlayer ? '<div class="text-xs text-blue-500 mt-1">（你）</div>' : '<div class="text-xs text-gray-500 mt-1">（AI）</div>'}
+                    ${isEliminated ? '<div class="text-xs text-red-500 mt-1">[已淘汰]</div>' : ''}
+                `;
+                
+                container.appendChild(playerCard);
+            });
+        }
+
+        // 显示角色分配信息
+        function showRoleAssignment() {
+            const roleIcon = document.getElementById('role-icon');
+            const roleTitle = document.getElementById('role-title');
+            const roleWord = document.getElementById('role-word');
+            const roleTips = document.getElementById('role-tips');
+            
+            if (!roleIcon || !roleTitle || !roleWord || !roleTips) return;
+            
+            // 设置图标和标题
+            if (GameState.current.playerRole === "卧底") {
+                roleIcon.textContent = '🕵️';
+                roleTitle.textContent = '你是卧底';
+                roleTitle.className = 'text-2xl font-bold mb-2 text-red-600 dark:text-red-400';
+            } else {
+                roleIcon.textContent = '👤';
+                roleTitle.textContent = '你是平民';
+                roleTitle.className = 'text-2xl font-bold mb-2 text-green-600 dark:text-green-400';
+            }
+            
+            // 显示词语
+            roleWord.textContent = GameState.current.playerWord;
+            
+            // 显示策略提示
+            roleTips.innerHTML = '';
+            
+            const tips = GameState.current.playerRole === "卧底" ? [
+                "🎯 卧底策略提示：",
+                "• 你的词与平民词相近但不同，要模仿平民的描述风格",
+                "• 避免直接说出词语，用模糊但合理的特征蒙混过关",
+                "• 目标：让平民投票淘汰彼此，直到卧底人数≥平民"
+            ] : [
+                "🎯 平民策略提示：",
+                "• 描述你的词语特征，但不要直接说出词语",
+                "• 注意听其他人的描述，找出发言模糊/矛盾的玩家",
+                "• 目标：找出卧底并将其淘汰"
+            ];
+            
+            tips.forEach(tip => {
+                const p = document.createElement('p');
+                p.className = 'text-gray-700 dark:text-gray-300';
+                p.textContent = tip;
+                roleTips.appendChild(p);
+            });
+            
+            // 更新玩家列表
+            updatePlayerList();
+        }
+
+        // 添加发言消息到聊天区域
+        function addSpeechMessage(player, speech, isPlayer = false) {
+            const chatContainer = document.getElementById('chat-container');
+            if (!chatContainer) return;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-bubble ${isPlayer ? 'player' : 'ai'} fade-in`;
+            
+            const role = GameState.current.roleAssignment[player][0];
+            const roleIcon = isPlayer ? (role === "卧底" ? '🕵️' : '👤') : '🤖'; // 只有玩家自己显示角色图标
+            const playerTag = isPlayer ? '（你）' : '';
+            
+            let roleDisplay = '';
+            if (isPlayer) {
+                // 玩家自己能看到自己的角色
+                roleDisplay = `<span class="text-sm ${role === '卧底' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}">
+                    ${role}
+                </span>`;
+            } else {
+                // 其他玩家不显示角色
+                roleDisplay = '<span class="text-sm text-gray-500 dark:text-gray-400">未知</span>';
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    ${roleIcon} ${player}${playerTag}
+                    ${roleDisplay}
+                </div>
+                <div class="text-gray-800 dark:text-gray-200">${speech}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-right">第${GameState.current.round}轮</div>
+            `;
+            
+            chatContainer.appendChild(messageDiv);
+            
+            // 滚动到底部
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+        }
+
+        // 添加系统消息
+        function addSystemMessage(text) {
+            const chatContainer = document.getElementById('chat-container');
+            if (!chatContainer) return;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-bubble system fade-in';
+            messageDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-info-circle text-yellow-600 dark:text-yellow-400 mr-2"></i>
+                    <span class="font-medium">${text}</span>
+                </div>
+            `;
+            
+            chatContainer.appendChild(messageDiv);
+            
+            // 滚动到底部
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+        }
+
+        // 更新发言阶段UI
+        async function runSpeechPhase() {
+            const activePlayers = GameState.current.allPlayers.filter(p => 
+                !GameState.current.eliminated.includes(p)
+            );
+            
+            // 随机决定发言顺序
+            const speechOrder = shuffleArray([...activePlayers]);
+            
+            // 清空聊天区域
+            const chatContainer = document.getElementById('chat-container');
+            if (chatContainer) {
+                chatContainer.innerHTML = '';
+            }
+            
+            // 添加开始消息
+            addSystemMessage(`第 ${GameState.current.round} 轮发言开始，共有 ${activePlayers.length} 名玩家参与。`);
+            
+            // 更新轮次显示
+            const roundNumber = document.getElementById('round-number');
+            const remainingPlayers = document.getElementById('remaining-players-count');
+            if (roundNumber) roundNumber.textContent = GameState.current.round;
+            if (remainingPlayers) remainingPlayers.textContent = activePlayers.length;
+            
+            // 玩家发言输入区域
+            const playerSpeechInput = document.getElementById('player-speech-input');
+            const aiSpeechStatus = document.getElementById('ai-speech-status');
+            const aiSpeechProgress = document.getElementById('ai-speech-progress');
+            
+            if (!playerSpeechInput || !aiSpeechStatus || !aiSpeechProgress) return;
+            
+            // 重置AI发言进度
+            aiSpeechProgress.innerHTML = '';
+            
+            // 处理每个玩家的发言
+            for (const player of speechOrder) {
+                const role = GameState.current.roleAssignment[player][0];
+                const word = GameState.current.roleAssignment[player][1];
+                
+                if (player === GameState.current.playerName && !GameState.current.playerEliminated) {
+                    // 玩家发言
+                    playerSpeechInput.classList.remove('hidden');
+                    aiSpeechStatus.classList.add('hidden');
+                    
+                    // 更新玩家词语显示
+                    const playerCurrentWord = document.getElementById('player-current-word');
+                    if (playerCurrentWord) playerCurrentWord.textContent = word;
+                    
+                    // 等待玩家输入发言
+                    await waitForPlayerSpeech(player);
+                    
+                    playerSpeechInput.classList.add('hidden');
+                    aiSpeechStatus.classList.remove('hidden');
+                } else {
+                    // AI发言
+                    playerSpeechInput.classList.add('hidden');
+                    aiSpeechStatus.classList.remove('hidden');
+                    
+                    // 显示AI发言状态
+                    const aiStatusItem = document.createElement('div');
+                    aiStatusItem.className = 'flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3';
+                    aiStatusItem.innerHTML = `
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center mr-3">
+                                <i class="fas fa-robot text-gray-600 dark:text-gray-400"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-700 dark:text-gray-300">${player}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">思考中...</div>
+                            </div>
+                        </div>
+                        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    `;
+                    
+                    aiSpeechProgress.appendChild(aiStatusItem);
+                    
+                    // 模拟AI思考时间
+                    await delay(1000 + Math.random() * 1500);
+                    
+                    // 生成AI发言
+                    const { speech, reason } = generateAISpeech(player, role, word);
+                    
+                    // 更新状态显示
+                    aiStatusItem.innerHTML = `
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center mr-3">
+                                <i class="fas fa-robot text-gray-600 dark:text-gray-400"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-700 dark:text-gray-300">${player}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">发言完成</div>
+                            </div>
+                        </div>
+                        <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                    `;
+                    
+                    // 添加到聊天区域
+                    addSpeechMessage(player, speech, false);
+                    
+                    // 记录发言
+                    GameState.current.speeches[player] = speech;
+                    GameState.current.speechReasoning[player] = reason;
+                    
+                    // 短暂延迟
+                    await delay(500);
+                }
+            }
+            
+            // 发言阶段完成
+            addSystemMessage(`第 ${GameState.current.round} 轮发言结束，进入投票阶段。`);
+            
+            // 记录历史发言
+            GameState.current.historySpeeches.push({...GameState.current.speeches});
+            
+            // 进入投票阶段
+            await delay(1000);
+            showSection('vote-section');
+            runVotePhase();
+        }
+
+        // 等待玩家输入发言
+        function waitForPlayerSpeech(player) {
+            return new Promise(resolve => {
+                const speechInput = document.getElementById('speech-input');
+                const submitSpeechBtn = document.getElementById('submit-speech-btn');
+                const speechLength = document.getElementById('speech-length');
+                const speechValidation = document.getElementById('speech-validation');
+                
+                if (!speechInput || !submitSpeechBtn || !speechLength || !speechValidation) {
+                    resolve();
+                    return;
+                }
+                
+                // 重置输入
+                speechInput.value = '';
+                speechLength.textContent = '当前字数: 0';
+                speechValidation.classList.add('hidden');
+                submitSpeechBtn.disabled = true;
+                
+                // 输入监听
+                speechInput.addEventListener('input', function() {
+                    const text = this.value;
+                    const length = text.replace(/\s/g, '').length; // 去除空格计算字数
+                    
+                    speechLength.textContent = `当前字数: ${length}`;
+                    
+                    // 验证长度
+                    if (length >= 10 && length <= 100) {
+                        speechValidation.classList.add('hidden');
+                        submitSpeechBtn.disabled = false;
+                    } else {
+                        speechValidation.classList.remove('hidden');
+                        submitSpeechBtn.disabled = true;
+                    }
+                });
+                
+                // 提交按钮监听
+                const submitHandler = function() {
+                    const text = speechInput.value.trim();
+                    const length = text.replace(/\s/g, '').length;
+                    
+                    if (length >= 10 && length <= 100) {
+                        // 记录发言
+                        GameState.current.speeches[player] = text;
+                        GameState.current.speechReasoning[player] = "（玩家手动输入）";
+                        
+                        // 添加到聊天区域
+                        addSpeechMessage(player, text, true);
+                        
+                        // 移除事件监听
+                        submitSpeechBtn.removeEventListener('click', submitHandler);
+                        speechInput.removeEventListener('keypress', enterHandler);
+                        
+                        resolve();
+                    }
+                };
+                
+                // 回车键提交
+                const enterHandler = function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        submitHandler();
+                    }
+                };
+                
+                submitSpeechBtn.addEventListener('click', submitHandler);
+                speechInput.addEventListener('keypress', enterHandler);
+            });
+        }
+
+        // 更新投票阶段UI
+        async function runVotePhase() {
+            const activePlayers = GameState.current.allPlayers.filter(p => 
+                !GameState.current.eliminated.includes(p)
+            );
+            
+            // 更新投票轮次显示
+            const voteRoundNumber = document.getElementById('vote-round-number');
+            if (voteRoundNumber) voteRoundNumber.textContent = GameState.current.round;
+            
+            // 显示发言回顾
+            const speechReview = document.getElementById('speech-review');
+            if (speechReview) {
+                speechReview.innerHTML = '';
+                
+                Object.entries(GameState.current.speeches).forEach(([player, speech]) => {
+                    const isPlayer = player === GameState.current.playerName;
+                    const role = GameState.current.roleAssignment[player][0];
+                    const roleIcon = isPlayer ? (role === "卧底" ? '🕵️' : '👤') : '🤖'; // 只有玩家自己显示角色图标
+                    
+                    let roleDisplay = '';
+                    if (isPlayer) {
+                        // 玩家自己能看到自己的角色
+                        roleDisplay = `<span class="text-sm ${role === '卧底' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}">
+                            ${role}
+                        </span>`;
+                    } else {
+                        // 其他玩家不显示角色
+                        roleDisplay = '<span class="text-sm text-gray-500 dark:text-gray-400">未知</span>';
+                    }
+                    
+                    const speechItem = document.createElement('div');
+                    speechItem.className = 'mb-3 pb-3 border-b border-gray-200 dark:border-gray-700 last:border-0 last:mb-0 last:pb-0';
+                    speechItem.innerHTML = `
+                        <div class="font-semibold text-gray-700 dark:text-gray-300">
+                            ${roleIcon} ${player}${isPlayer ? '（你）' : ''}
+                            ${roleDisplay}
+                        </div>
+                        <div class="text-gray-600 dark:text-gray-400 mt-1">${speech}</div>
+                    `;
+                    
+                    speechReview.appendChild(speechItem);
+                });
+            }
+            
+            // 玩家投票区域
+            const playerVoteArea = document.getElementById('player-vote-area');
+            const aiVoteStatus = document.getElementById('ai-vote-status');
+            const aiVoteProgress = document.getElementById('ai-vote-progress');
+            
+            if (!playerVoteArea || !aiVoteStatus || !aiVoteProgress) return;
+            
+            // 重置投票进度
+            aiVoteProgress.innerHTML = '';
+            GameState.current.votes = {};
+            GameState.current.voteReasoning = {};
+            
+            // 获取候选人（除玩家自己外的存活玩家）
+            const candidates = activePlayers.filter(p => p !== GameState.current.playerName);
+            
+            // 如果玩家已被淘汰，隐藏投票区域
+            if (GameState.current.playerEliminated) {
+                playerVoteArea.classList.add('hidden');
+            } else {
+                playerVoteArea.classList.remove('hidden');
+                
+                // 更新玩家投票信息
+                const playerVoteRole = document.getElementById('player-vote-role');
+                const playerVoteWord = document.getElementById('player-vote-word');
+                if (playerVoteRole) playerVoteRole.textContent = GameState.current.playerRole;
+                if (playerVoteWord) playerVoteWord.textContent = GameState.current.playerWord;
+                
+                // 更新候选人按钮
+                const voteCandidates = document.getElementById('vote-candidates');
+                if (voteCandidates) {
+                    voteCandidates.innerHTML = '';
+                    
+                    candidates.forEach((candidate, index) => {
+                        // 投票阶段玩家不应该看到其他玩家的角色，所以显示"身份未知"
+                        const role = GameState.current.roleAssignment[candidate][0];
+                        const roleColor = 'gray'; // 统一使用灰色，不显示真实角色
+                        
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = `vote-btn bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 text-left transition duration-200`;
+                        button.innerHTML = `
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mr-3">
+                                    <span class="font-semibold">${index + 1}</span>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-gray-700 dark:text-gray-300">${candidate}</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">身份未知</div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        button.addEventListener('click', function() {
+                            // 移除其他按钮的选中状态
+                            document.querySelectorAll('.vote-btn').forEach(btn => {
+                                btn.classList.remove('selected');
+                                btn.classList.remove('border-blue-500');
+                                btn.classList.add('border-gray-300', 'dark:border-gray-600');
+                            });
+                            
+                            // 设置当前按钮为选中状态
+                            this.classList.add('selected', 'border-blue-500');
+                            this.classList.remove('border-gray-300', 'dark:border-gray-600');
+                            
+                            // 启用提交按钮
+                            const submitVoteBtn = document.getElementById('submit-vote-btn');
+                            if (submitVoteBtn) submitVoteBtn.disabled = false;
+                            
+                            // 存储选择的候选人
+                            this.dataset.selectedCandidate = candidate;
+                        });
+                        
+                        voteCandidates.appendChild(button);
+                    });
+                }
+                
+                // 设置投票提交处理
+                const submitVoteBtn = document.getElementById('submit-vote-btn');
+                const voteReason = document.getElementById('vote-reason');
+                
+                if (submitVoteBtn) {
+                    submitVoteBtn.disabled = true;
+                    
+                    const submitHandler = async function() {
+                        // 获取选中的候选人
+                        const selectedBtn = document.querySelector('.vote-btn.selected');
+                        if (!selectedBtn) return;
+                        
+                        const candidate = selectedBtn.dataset.selectedCandidate;
+                        const reason = voteReason ? voteReason.value.trim() : "（玩家未填写理由）";
+                        
+                        if (!candidate) return;
+                        
+                        // 记录玩家投票
+                        GameState.current.votes[GameState.current.playerName] = candidate;
+                        GameState.current.voteReasoning[GameState.current.playerName] = reason || "（玩家未填写理由）";
+                        
+                        // 显示玩家投票结果
+                        addSystemMessage(`${GameState.current.playerName} 投票给了 ${candidate}，理由：${reason || "无"}`);
+                        
+                        // 移除事件监听
+                        submitVoteBtn.removeEventListener('click', submitHandler);
+                        
+                        // 隐藏玩家投票区域
+                        playerVoteArea.classList.add('hidden');
+                        aiVoteStatus.classList.remove('hidden');
+                        
+                        // 继续AI投票
+                        await runAIVotes(activePlayers, candidates);
+                    };
+                    
+                    submitVoteBtn.addEventListener('click', submitHandler);
+                }
+            }
+            
+            // 如果玩家已被淘汰，直接进行AI投票
+            if (GameState.current.playerEliminated) {
+                playerVoteArea.classList.add('hidden');
+                aiVoteStatus.classList.remove('hidden');
+                await runAIVotes(activePlayers, candidates);
+            }
+        }
+
+        // 运行AI投票
+        async function runAIVotes(activePlayers, candidates) {
+            const aiVoteProgress = document.getElementById('ai-vote-progress');
+            if (!aiVoteProgress) return;
+            
+            // 获取需要投票的AI玩家
+            const aiVoters = activePlayers.filter(p => 
+                p !== GameState.current.playerName && !GameState.current.eliminated.includes(p)
+            );
+            
+            for (const voter of aiVoters) {
+                const role = GameState.current.roleAssignment[voter][0];
+                const word = GameState.current.roleAssignment[voter][1];
+                
+                // 显示AI投票状态
+                const aiVoteItem = document.createElement('div');
+                aiVoteItem.className = 'flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3';
+                aiVoteItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center mr-3">
+                            <i class="fas fa-robot text-gray-600 dark:text-gray-400"></i>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-gray-700 dark:text-gray-300">${voter}</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">思考投票中...</div>
+                        </div>
+                    </div>
+                    <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                `;
+                
+                aiVoteProgress.appendChild(aiVoteItem);
+                
+                // 模拟思考时间
+                await delay(800 + Math.random() * 1000);
+                
+                // 生成AI投票
+                const voteResult = generateAIVote(voter, role, word);
+                
+                if (voteResult) {
+                    // 记录AI投票
+                    GameState.current.votes[voter] = voteResult.vote;
+                    GameState.current.voteReasoning[voter] = voteResult.reason;
+                    
+                    // 更新状态显示
+                    aiVoteItem.innerHTML = `
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center mr-3">
+                                <i class="fas fa-robot text-gray-600 dark:text-gray-400"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-700 dark:text-gray-300">${voter}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">投票给 ${voteResult.vote}</div>
+                            </div>
+                        </div>
+                        <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                    `;
+                    
+                    // 显示投票消息
+                    addSystemMessage(`${voter} 投票给了 ${voteResult.vote}，理由：${voteResult.reason}`);
+                }
+                
+                // 短暂延迟
+                await delay(500);
+            }
+            
+            // 所有投票完成，进入裁决阶段
+            await delay(1000);
+            showSection('judge-section');
+            runJudgePhase();
+        }
+
+        // 运行裁决阶段
+        function runJudgePhase() {
+            // 处理投票结果
+            const { eliminated, voteCount, role } = processVotes();
+            
+            // 显示得票统计
+            const voteResults = document.getElementById('vote-results');
+            if (voteResults) {
+                voteResults.innerHTML = '';
+                
+                // 按得票数排序
+                const sortedVotes = Object.entries(voteCount).sort((a, b) => b[1] - a[1]);
+                
+                sortedVotes.forEach(([player, count]) => {
+                    const isPlayer = player === GameState.current.playerName;
+                    const isEliminated = player === eliminated;
+                    
+                    const voteItem = document.createElement('div');
+                    voteItem.className = 'space-y-2';
+                    
+                    // 创建进度条
+                    const maxVotes = Math.max(...Object.values(voteCount));
+                    const percentage = (count / maxVotes) * 100;
+                    
+                    voteItem.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <span class="font-semibold text-gray-700 dark:text-gray-300">${player}</span>
+                                ${isPlayer ? '<span class="ml-2 text-xs bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-300 px-2 py-1 rounded">你</span>' : ''}
+                                ${isEliminated ? '<span class="ml-2 text-xs bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-300 px-2 py-1 rounded">淘汰</span>' : ''}
+                            </div>
+                            <div class="font-bold text-gray-800 dark:text-gray-200">${count}票</div>
+                        </div>
+                        <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-full ${isEliminated ? 'bg-red-500' : 'bg-blue-500'} rounded-full" 
+                                 style="width: ${percentage}%"></div>
+                        </div>
+                    `;
+                    
+                    voteResults.appendChild(voteItem);
+                });
+            }
+            
+            // 显示淘汰结果
+            const eliminationContent = document.getElementById('elimination-content');
+            if (eliminationContent) {
+                const isPlayerEliminated = eliminated === GameState.current.playerName;
+                
+                eliminationContent.innerHTML = `
+                    <div class="text-5xl mb-4">${isPlayerEliminated ? '😢' : (role === '卧底' ? '🎉' : '😬')}</div>
+                    <h4 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+                        第 ${GameState.current.round} 轮淘汰结果
+                    </h4>
+                    <p class="text-xl text-gray-700 dark:text-gray-300 mb-2">
+                        <span class="font-bold">${eliminated}</span>（${role}）
+                    </p>
+                    ${isPlayerEliminated ? 
+                        `<p class="text-lg text-gray-600 dark:text-gray-400 mb-4">
+                            你被淘汰了！你的真实词语是：【${GameState.current.playerWord}】
+                        </p>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            平民词：${GameState.current.civilianWord} | 卧底词：${GameState.current.undercoverWord}
+                        </p>` : 
+                        `<p class="text-lg text-gray-600 dark:text-gray-400">
+                            ${role === '卧底' ? 
+                                `${eliminated} 果然是卧底！` : 
+                                `${eliminated} 是平民，投错了……`
+                            }
+                        </p>`
+                    }
+                `;
+            }
+            
+            // 检查游戏是否结束
+            const isGameEnd = checkGameEnd();
+            
+            // 更新游戏状态
+            const gameStatusUpdate = document.getElementById('game-status-update');
+            const nextRoundBtn = document.getElementById('next-round-btn');
+            const finalResultBtn = document.getElementById('final-result-btn');
+            
+            if (gameStatusUpdate && nextRoundBtn && finalResultBtn) {
+                if (isGameEnd) {
+                    // 游戏结束
+                    gameStatusUpdate.innerHTML = `
+                        <div class="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/30 dark:to-blue-900/30 border border-green-200 dark:border-green-800 rounded-xl p-6 text-center">
+                            <div class="text-4xl mb-4">${GameState.current.winner === 'civilian' ? '🎊' : '🎊'}</div>
+                            <h4 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+                                ${GameState.current.winner === 'civilian' ? '平民阵营胜利！' : '卧底阵营胜利！'}
+                            </h4>
+                            <p class="text-gray-600 dark:text-gray-400">
+                                ${GameState.current.winner === 'civilian' ? 
+                                    '所有卧底已被淘汰，平民获得胜利！' : 
+                                    '卧底人数达到或超过平民人数，卧底获得胜利！'
+                                }
+                            </p>
+                        </div>
+                    `;
+                    
+                    nextRoundBtn.classList.add('hidden');
+                    finalResultBtn.classList.remove('hidden');
+                } else {
+                    // 游戏继续
+                    gameStatusUpdate.innerHTML = `
+                        <div class="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/30 dark:to-orange-900/30 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6 text-center">
+                            <h4 class="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                                游戏继续
+                            </h4>
+                            <p class="text-gray-600 dark:text-gray-400">
+                                进入第 ${GameState.current.round + 1} 轮，剩余 ${GameState.current.allPlayers.length - GameState.current.eliminated.length} 人
+                            </p>
+                        </div>
+                    `;
+                    
+                    nextRoundBtn.classList.remove('hidden');
+                    finalResultBtn.classList.add('hidden');
+                }
+            }
+        }
+
+        // 显示最终结果
+        function showFinalResults() {
+            // 更新玩家列表显示（包含淘汰状态）
+            updatePlayerList();
+            
+            // 显示角色揭秘
+            const roleReveal = document.getElementById('role-reveal');
+            if (roleReveal) {
+                roleReveal.innerHTML = '';
+                
+                GameState.current.allPlayers.forEach(player => {
+                    const [role, word] = GameState.current.roleAssignment[player];
+                    const isPlayer = player === GameState.current.playerName;
+                    const isEliminated = GameState.current.eliminated.includes(player);
+                    
+                    const roleCard = document.createElement('div');
+                    roleCard.className = `bg-gray-100 dark:bg-gray-700 rounded-xl p-4 text-center ${isEliminated ? 'opacity-70' : ''}`;
+                    
+                    let icon = '🤖'; // AI默认
+                    if (isPlayer) icon = '👤';
+                    if (role === "卧底") icon = '🕵️';
+                    
+                    roleCard.innerHTML = `
+                        <div class="text-4xl mb-2">${icon}</div>
+                        <div class="font-bold text-lg ${isPlayer ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}">
+                            ${player}${isPlayer ? '（你）' : ''}
+                        </div>
+                        <div class="text-sm ${role === '卧底' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'} mb-2">
+                            ${role}${isEliminated ? ' [已淘汰]' : ' [存活]'}
+                        </div>
+                        <div class="text-gray-600 dark:text-gray-400 text-sm">词语：${word}</div>
+                    `;
+                    
+                    roleReveal.appendChild(roleCard);
+                });
+            }
+            
+            // 显示词语对照
+            const civilianWordFinal = document.getElementById('civilian-word-final');
+            const undercoverWordFinal = document.getElementById('undercover-word-final');
+            if (civilianWordFinal) civilianWordFinal.textContent = GameState.current.civilianWord;
+            if (undercoverWordFinal) undercoverWordFinal.textContent = GameState.current.undercoverWord;
+            
+            // 显示最终结果
+            const finalWinner = document.getElementById('final-winner');
+            if (finalWinner) {
+                finalWinner.innerHTML = GameState.current.winner === 'civilian' ? 
+                    '<span class="text-green-600 dark:text-green-400">平民阵营胜利 🎉</span>' : 
+                    '<span class="text-red-600 dark:text-red-400">卧底阵营胜利 😈</span>';
+            }
+            
+            // 显示玩家战绩
+            const playerResult = document.getElementById('player-result');
+            if (playerResult) {
+                let performance = '';
+                if (GameState.current.playerRole === "平民") {
+                    performance = GameState.current.winner === "civilian" ? 
+                        "🥇 你作为平民，和队友一起成功揪出了卧底！" : 
+                        "😔 你作为平民，不幸被卧底反杀了……";
+                } else {
+                    performance = GameState.current.winner === "undercover" ? 
+                        "🕵️ 你作为卧底，成功蒙混过关，潜伏获胜！" : 
+                        "😅 你作为卧底，最终还是被平民识破了……";
+                }
+                playerResult.textContent = performance;
+            }
+            
+            // 显示游戏统计
+            const totalRounds = document.getElementById('total-rounds');
+            const eliminationOrder = document.getElementById('elimination-order');
+            
+            if (totalRounds) totalRounds.textContent = GameState.current.round;
+            if (eliminationOrder) eliminationOrder.textContent = GameState.current.eliminated.join(' → ') || '无';
+            
+            // 计算游戏时长
+            if (GameState.startTime && GameState.endTime) {
+                const duration = Math.round((GameState.endTime - GameState.startTime) / 1000);
+                const minutes = Math.floor(duration / 60);
+                const seconds = duration % 60;
+                const gameDuration = document.getElementById('game-duration');
+                if (gameDuration) {
+                    gameDuration.textContent = `${minutes > 0 ? minutes + '分' : ''}${seconds}秒`;
+                }
+            }
+        }
+
+        // ================== 游戏流程控制 ==================
+        
+        // 开始新游戏
+        async function startNewGame() {
+            // 获取玩家名字
+            const playerNameInput = document.getElementById('player-name');
+            let playerName = playerNameInput ? playerNameInput.value.trim() : '玩家';
+            
+            if (!playerName) playerName = '玩家';
+            
+            // 检查是否与AI玩家重名
+            const reservedNames = ["小明", "小红", "小刚", "老王"];
+            if (reservedNames.includes(playerName)) {
+                alert(`昵称"${playerName}"已被 AI 玩家使用，请换一个`);
+                if (playerNameInput) playerNameInput.focus();
+                return;
+            }
+            
+            // 记录开始时间
+            GameState.startTime = Date.now();
+            
+            // 重置游戏状态
+            GameState.current = {
+                civilianWord: "",
+                undercoverWord: "",
+                roleAssignment: {},
+                speeches: {},
+                historySpeeches: [],
+                votes: {},
+                gameStatus: "running",
+                winner: "",
+                eliminated: [],
+                round: 1,
+                playerName: playerName,
+                playerRole: "",
+                playerWord: "",
+                playerEliminated: false,
+                allPlayers: [],
+                voteReasoning: {},
+                speechReasoning: {}
+            };
+            
+            // 生成词语
+            generateWords();
+            
+            // 分配角色
+            assignRoles(playerName);
+            
+            // 显示角色分配部分
+            showRoleAssignment();
+            showSection('role-section');
+        }
+
+        // 进入发言阶段
+        function startSpeechPhase() {
+            showSection('speech-section');
+            runSpeechPhase();
+        }
+
+        // 进入下一轮
+        function nextRound() {
+            GameState.current.round++;
+            GameState.current.speeches = {};
+            
+            // 进入发言阶段
+            showSection('speech-section');
+            runSpeechPhase();
+        }
+
+        // 结束游戏，显示最终结果
+        function endGame() {
+            GameState.endTime = Date.now();
+            showFinalResults();
+            showSection('final-section');
+        }
+
+        // 重新开始游戏
+        function restartGame() {
+            // 回到欢迎界面
+            showSection('welcome-section');
+            
+            // 重置表单
+            const playerNameInput = document.getElementById('player-name');
+            if (playerNameInput) playerNameInput.value = '玩家';
+        }
+
+        // ================== 事件监听器 ==================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // 开始游戏按钮
+            const startGameBtn = document.getElementById('start-game-btn');
+            if (startGameBtn) {
+                startGameBtn.addEventListener('click', startNewGame);
+            }
+            
+            // 确认角色按钮
+            const confirmRoleBtn = document.getElementById('confirm-role-btn');
+            if (confirmRoleBtn) {
+                confirmRoleBtn.addEventListener('click', startSpeechPhase);
+            }
+            
+            // 下一轮按钮
+            const nextRoundBtn = document.getElementById('next-round-btn');
+            if (nextRoundBtn) {
+                nextRoundBtn.addEventListener('click', nextRound);
+            }
+            
+            // 最终结果按钮
+            const finalResultBtn = document.getElementById('final-result-btn');
+            if (finalResultBtn) {
+                finalResultBtn.addEventListener('click', endGame);
+            }
+            
+            // 重新开始按钮
+            const restartGameBtn = document.getElementById('restart-game-btn');
+            if (restartGameBtn) {
+                restartGameBtn.addEventListener('click', restartGame);
+            }
+            
+            // 暗色模式切换
+            const toggleDarkModeBtn = document.getElementById('toggle-dark-mode');
+            if (toggleDarkModeBtn) {
+                toggleDarkModeBtn.addEventListener('click', function() {
+                    const html = document.documentElement;
+                    if (html.classList.contains('dark')) {
+                        html.classList.remove('dark');
+                        this.innerHTML = '<i class="fas fa-moon mr-2"></i>暗色模式';
+                    } else {
+                        html.classList.add('dark');
+                        this.innerHTML = '<i class="fas fa-sun mr-2"></i>亮色模式';
+                    }
+                });
+            }
+            
+            // 游戏帮助
+            const showHelpBtn = document.getElementById('show-help');
+            const helpModal = document.getElementById('help-modal');
+            const closeHelpModal = document.getElementById('close-help-modal');
+            const closeHelpBtn = document.getElementById('close-help-btn');
+            
+            if (showHelpBtn && helpModal) {
+                showHelpBtn.addEventListener('click', function() {
+                    helpModal.classList.remove('hidden');
+                });
+            }
+            
+            if (closeHelpModal) {
+                closeHelpModal.addEventListener('click', function() {
+                    helpModal.classList.add('hidden');
+                });
+            }
+            
+            if (closeHelpBtn) {
+                closeHelpBtn.addEventListener('click', function() {
+                    helpModal.classList.add('hidden');
+                });
+            }
+            
+            // 点击模态框外部关闭
+            if (helpModal) {
+                helpModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.classList.add('hidden');
+                    }
+                });
+            }
+            
+            // 玩家名字输入框回车键
+            const playerNameInput = document.getElementById('player-name');
+            if (playerNameInput) {
+                playerNameInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        startNewGame();
+                    }
+                });
+            }
+            
+            // 初始化：显示欢迎部分
+            showSection('welcome-section');
+            
+            // 自动检测暗色模式
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+                if (toggleDarkModeBtn) {
+                    toggleDarkModeBtn.innerHTML = '<i class="fas fa-sun mr-2"></i>亮色模式';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
